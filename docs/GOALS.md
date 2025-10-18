@@ -21,6 +21,7 @@ Represents a major curriculum area (e.g., "responsive-web-design", "javascript-a
 Represents a module within a superblock. Each block JSON contains:
 
 **Required fields:**
+
 - `name`: Human-readable name
 - `dashedName`: URL-friendly identifier
 - `helpCategory`: Category for help/support (e.g., "HTML-CSS", "JavaScript", "Backend Development")
@@ -29,6 +30,7 @@ Represents a module within a superblock. Each block JSON contains:
 - `isUpcomingChange`: Boolean indicating if the module is WIP
 
 **Optional fields:**
+
 - `blockType`: Type of block (lecture, lab, workshop, review, quiz, exam, warm-up, practice, learn) - present in ~68% of blocks
 - `usesMultifileEditor`: Boolean indicating if the block uses a multifile editor
 - `hasEditableBoundaries`: Boolean for editable boundaries feature
@@ -49,6 +51,7 @@ Based on the current curriculum structure:
 - **32+ certifications** available for completion
 
 **Block Type Distribution:**
+
 - Lecture: 123 blocks
 - Lab: 117 blocks
 - Workshop: 74 blocks
@@ -61,6 +64,7 @@ Based on the current curriculum structure:
 - No blockType specified: 234 blocks
 
 **Block Layout Distribution:**
+
 - Link: 269 blocks
 - Challenge List: 121 blocks
 - Challenge Grid: 83 blocks
@@ -93,23 +97,26 @@ Based on the current curriculum structure:
 **Monorepo:** pnpm workspaces for efficient dependency management and strict isolation
 
 **Core Dependencies:**
+
 - **GraphQL Yoga** (v5+): Modern, lightweight GraphQL server
 - **GraphQL Code Generator**: TypeScript type generation from GraphQL schema
 - **TypeScript** (v5+): Strict type safety with no `any` types
 
 **Development Tools:**
+
 - **tsx**: TypeScript execution with hot reload for development
 - **ESLint**: Code quality and consistency
 
 **TypeScript Configuration:**
+
 - Target: ES2022 with ESM modules
 - Strict mode enabled with all strict flags
 - `noUncheckedIndexedAccess`, `exactOptionalPropertyTypes` for extra safety
 
 **Data Storage:**
 
-*MVP (Current):* In-memory metadata only - curriculum structure without lesson content
-*Future (v2):* Hybrid architecture - structure in-memory, content from database with caching
+_MVP (Current):_ In-memory metadata only - curriculum structure without lesson content
+_Future (v2):_ Hybrid architecture - structure in-memory, content from database with caching
 
 The curriculum data is static and read-only for MVP. Load all JSON files into memory on server startup for fast access. Use `Map<string, T>` structures for O(1) lookups by identifier.
 
@@ -176,7 +183,9 @@ enum BlockType {
 }
 
 type Challenge {
-  """Challenge metadata - always available"""
+  """
+  Challenge metadata - always available
+  """
   id: ID!
   title: String!
   block: Block!
@@ -235,17 +244,20 @@ type Certification {
 ### Type Layers
 
 **1. Raw JSON Types** (`RawCurriculum`, `RawSuperblock`, `RawBlock`)
+
 - Mirror exact JSON file structure
 - All fields readonly
 - String-based enums (as stored in JSON: `"challenge-list"`, `"lecture"`)
 
 **2. Normalized Internal Types** (`CurriculumData`, `SuperblockData`, `BlockData`, `ChallengeData`)
+
 - Enriched with computed relationships
 - Normalized enums (SCREAMING_SNAKE_CASE: `CHALLENGE_LIST`, `LECTURE`)
 - Pre-computed bidirectional references
 - Explicit `null` for missing optional fields (not `undefined`)
 
 **3. Generated GraphQL Types** (`types.generated.ts`)
+
 - Auto-generated from GraphQL schema via codegen
 - Resolver types with proper context typing
 - Mapped to internal data types
@@ -261,6 +273,7 @@ type Certification {
 ### Code Generation
 
 **GraphQL → TypeScript:**
+
 ```typescript
 // codegen.ts configuration
 {
@@ -286,6 +299,7 @@ This ensures resolver signatures automatically match internal types.
 ### Data Separation Strategy
 
 **Structure Data (Always In-Memory):**
+
 - Curriculum organization (superblocks, blocks, certifications)
 - Challenge metadata (IDs, titles, block relationships)
 - Layout and type information
@@ -294,6 +308,7 @@ This ensures resolver signatures automatically match internal types.
 - **Update frequency:** Weekly/monthly
 
 **Content Data (Future: Database + Cache):**
+
 - Challenge descriptions, instructions, hints
 - Test cases and validation logic
 - Solution files and code templates
@@ -316,7 +331,7 @@ export interface BlockData {
   readonly name: string;
   readonly dashedName: string;
   readonly helpCategory: string;
-  readonly challenges: readonly ChallengeMetadata[];  // Metadata only
+  readonly challenges: readonly ChallengeMetadata[]; // Metadata only
   readonly blockLayout: BlockLayout;
   readonly blockType: BlockType | null;
   readonly isUpcomingChange: boolean;
@@ -361,22 +376,34 @@ interface DataProvider {
 class InMemoryDataProvider implements DataProvider {
   constructor(private store: DataStore) {}
 
-  getCurriculum() { return this.store.curriculum; }
-  getSuperblock(name: string) { return this.store.superblocks.get(name) ?? null; }
-  getBlock(name: string) { return this.store.blocks.get(name) ?? null; }
-  getChallenge(id: string) { return this.store.challenges.get(id) ?? null; }
+  getCurriculum() {
+    return this.store.curriculum;
+  }
+  getSuperblock(name: string) {
+    return this.store.superblocks.get(name) ?? null;
+  }
+  getBlock(name: string) {
+    return this.store.blocks.get(name) ?? null;
+  }
+  getChallenge(id: string) {
+    return this.store.challenges.get(id) ?? null;
+  }
 }
 
 // Future: Hybrid Implementation
 class HybridDataProvider implements DataProvider {
   constructor(
-    private structureStore: DataStore,     // In-memory structure
-    private contentLoader: ContentLoader   // Database + cache
+    private structureStore: DataStore, // In-memory structure
+    private contentLoader: ContentLoader, // Database + cache
   ) {}
 
   // Same sync methods for structure
-  getCurriculum() { return this.structureStore.curriculum; }
-  getSuperblock(name: string) { return this.structureStore.superblocks.get(name) ?? null; }
+  getCurriculum() {
+    return this.structureStore.curriculum;
+  }
+  getSuperblock(name: string) {
+    return this.structureStore.superblocks.get(name) ?? null;
+  }
 
   // New async method for content
   async getChallengeContent(id: string): Promise<ChallengeContent | null> {
@@ -446,12 +473,14 @@ type ChallengeContent {
 ### Memory Scaling Analysis
 
 **Current State (MVP):**
+
 ```
 737 blocks × 50 challenges avg × 100 bytes = ~3.7MB
 + Superblocks & relationships = ~5MB total
 ```
 
 **Future Scale Estimates:**
+
 ```
 Metadata Only (Structure):
 10,000 blocks × 50 challenges × 100 bytes = ~50MB
@@ -466,12 +495,14 @@ With Full Content (if loaded into memory):
 ### Migration Path to v2
 
 **Phase 1 (MVP - Current):**
+
 1. Load metadata only from JSON files
 2. Return `null` for `Challenge.content` field
 3. Monitor memory usage via health checks
 4. Validate architecture with real traffic
 
 **Phase 2 (v2 - Content Addition):**
+
 1. Add `ContentLoader` interface and PostgreSQL implementation
 2. Implement LRU cache layer (50MB limit, 500 challenges)
 3. Add `getChallengeContent()` to `HybridDataProvider`
@@ -479,6 +510,7 @@ With Full Content (if loaded into memory):
 5. **Zero changes to GraphQL schema or client queries**
 
 **Phase 3 (Future - Optional Optimization):**
+
 1. Add Redis for distributed caching if needed
 2. Implement prefetch strategies for common paths
 3. Add CDN caching for static content
@@ -517,6 +549,7 @@ type HealthCheck {
 ```
 
 **Alerting Thresholds:**
+
 - Warning: Memory usage > 100MB (metadata only should stay under 50MB)
 - Critical: Memory usage > 200MB (indicates possible memory leak)
 - Cache hit rate < 80% (tune cache size or TTL)
@@ -526,16 +559,18 @@ type HealthCheck {
 ### Loading Process
 
 **Phase 1: Load Raw Data**
+
 ```typescript
 // Parallel loading of all JSON files
 const [curriculum, superblocks, blocks] = await Promise.all([
-  loadCurriculum(),      // data/structure/curriculum.json
-  loadSuperblocks(),     // data/structure/superblocks/*.json
-  loadBlocks()           // data/structure/blocks/*.json
+  loadCurriculum(), // data/structure/curriculum.json
+  loadSuperblocks(), // data/structure/superblocks/*.json
+  loadBlocks(), // data/structure/blocks/*.json
 ]);
 ```
 
 **Phase 2: Validate Integrity**
+
 - Verify all superblock references in curriculum exist
 - Verify all block references in superblocks exist
 - Verify all certifications correspond to superblocks
@@ -543,6 +578,7 @@ const [curriculum, superblocks, blocks] = await Promise.all([
 - Return detailed errors with file paths on failure
 
 **Phase 3: Build Data Store**
+
 ```typescript
 interface DataStore {
   curriculum: CurriculumData;
@@ -553,6 +589,7 @@ interface DataStore {
 ```
 
 **Phase 4: Pre-compute Relationships**
+
 - Build `blockToSuperblock` reverse mapping
 - Build `challengeToBlock` reverse mapping
 - Compute `isCertification` flags
@@ -561,16 +598,19 @@ interface DataStore {
 ### Data Transformation
 
 **Enum Normalization:**
+
 ```typescript
 // JSON: "challenge-list" → TypeScript: BlockLayout.CHALLENGE_LIST
 // JSON: "lecture" → TypeScript: BlockType.LECTURE
 ```
 
 **Optional Field Handling:**
+
 - `blockType`: `undefined` in JSON → `null` in TypeScript
 - Store explicit `null` for clarity and GraphQL compatibility
 
 **Relationship Enrichment:**
+
 - Each `BlockData` includes `superblockDashedName`
 - Each `ChallengeData` includes `blockDashedName`
 - Enables O(1) bidirectional traversal
@@ -578,6 +618,7 @@ interface DataStore {
 ### Error Handling
 
 **Result Type Pattern:**
+
 ```typescript
 type Result<T, E = Error> =
   | { success: true; data: T }
@@ -585,6 +626,7 @@ type Result<T, E = Error> =
 ```
 
 **Validation Errors:**
+
 ```typescript
 class DataValidationError extends Error {
   constructor(
@@ -645,6 +687,7 @@ curriculum-db/
 ```
 
 **Key Principles:**
+
 - No symlinking - data folder at repository root
 - Server package reads data from `../../data/structure/`
 - Each package is independently buildable and testable
@@ -653,18 +696,20 @@ curriculum-db/
 ### Package Management
 
 **Root Package Scripts:**
+
 ```json
 {
   "scripts": {
-    "dev": "pnpm --filter @fcc/curriculum-server dev",
+    "dev": "pnpm --filter @freecodecamp/server-gql dev",
     "build": "pnpm -r build",
     "type-check": "pnpm -r type-check",
-    "codegen": "pnpm --filter @fcc/curriculum-server codegen"
+    "codegen": "pnpm --filter @freecodecamp/server-gql codegen"
   }
 }
 ```
 
 **Server Package Scripts:**
+
 ```json
 {
   "scripts": {
@@ -680,8 +725,9 @@ curriculum-db/
 ### Resolver Implementation Pattern
 
 **Strongly-Typed Resolvers:**
+
 ```typescript
-import type { Resolvers } from '../schema/types.generated.ts';
+import type { Resolvers } from "../schema/types.generated.ts";
 
 export const resolvers: Resolvers = {
   Query: {
@@ -704,17 +750,20 @@ The generated types ensure compile-time safety for all resolver signatures.
 ### Performance Optimizations
 
 **Startup:**
+
 - Parallel JSON file loading via `Promise.all()`
 - Single-pass data structure building
 - All relationships pre-computed once
 
 **Runtime:**
+
 - `Map<string, T>` for O(1) lookups by identifier
 - Immutable data structures enable safe concurrent reads
 - No file I/O during request handling
 - GraphQL Yoga's built-in query caching
 
 **Memory:**
+
 - Expected memory usage: ~10-20MB for 737 blocks
 - All data readonly prevents accidental memory leaks
 - Single shared data store instance across requests
@@ -722,18 +771,21 @@ The generated types ensure compile-time safety for all resolver signatures.
 ### Error Handling
 
 **Loading Phase:**
+
 - Use `Result<T, E>` pattern to prevent uncaught exceptions
 - `DataValidationError` includes file path and field name
 - Fail fast on startup if data is invalid
 - Detailed error messages for debugging
 
 **Runtime Phase:**
+
 - GraphQL nullable return types for missing resources
 - Return `null` instead of throwing for not found queries
 - Structured error responses via GraphQL error handling
 - No server crashes from bad queries
 
 **Validation:**
+
 - JSON syntax errors caught and reported with file path
 - Enum value validation with clear error messages
 - Reference integrity checks (superblock → block, block → challenge)
@@ -755,12 +807,14 @@ The generated types ensure compile-time safety for all resolver signatures.
 ## Implementation Roadmap
 
 ### Phase 1: Monorepo Setup
+
 1. Initialize pnpm workspace configuration
 2. Create root `package.json` and `tsconfig.base.json`
 3. Set up `packages/server/` structure
 4. Install core dependencies (GraphQL Yoga, TypeScript, tsx)
 
 ### Phase 2: Type System
+
 1. Create `data/types.ts` with raw and normalized types
 2. Define `BlockLayout` and `BlockType` enums
 3. Implement `Result<T, E>` and `DataValidationError` types
@@ -769,6 +823,7 @@ The generated types ensure compile-time safety for all resolver signatures.
 6. **Create `DataProvider` interface for abstraction**
 
 ### Phase 3: Data Loading
+
 1. Implement `loader.ts` for JSON file reading
 2. **Load metadata only (id, title) - ignore content fields**
 3. Create `validators.ts` for integrity checks
@@ -777,6 +832,7 @@ The generated types ensure compile-time safety for all resolver signatures.
 6. Add comprehensive error handling with `Result` types
 
 ### Phase 4: GraphQL Schema
+
 1. Write `schema.graphql` with complete type definitions
 2. **Include `ChallengeContent` types even though MVP returns `null`**
 3. Configure GraphQL Code Generator in `codegen.ts`
@@ -785,6 +841,7 @@ The generated types ensure compile-time safety for all resolver signatures.
 6. Verify generated types match internal data types
 
 ### Phase 5: Resolvers
+
 1. Implement Query resolvers (curriculum, superblock(s), block(s), etc.)
 2. Implement type resolvers (Block.superblock, Challenge.block, etc.)
 3. **Implement `Challenge.content` resolver to return `null` (future placeholder)**
@@ -793,6 +850,7 @@ The generated types ensure compile-time safety for all resolver signatures.
 6. Ensure all resolvers are fully typed
 
 ### Phase 6: Server Setup
+
 1. Create GraphQL Yoga server instance
 2. Initialize `InMemoryDataProvider` on startup
 3. Add error handling for failed initialization (exit with error)
@@ -802,6 +860,7 @@ The generated types ensure compile-time safety for all resolver signatures.
 7. Set up development hot reload with tsx
 
 ### Phase 7: Testing & Validation
+
 1. Verify data loads successfully from `data/structure/`
 2. Test all GraphQL queries against real curriculum data
 3. **Verify `Challenge.content` returns `null` consistently**
@@ -812,6 +871,7 @@ The generated types ensure compile-time safety for all resolver signatures.
 8. Verify `DataProvider` abstraction works correctly
 
 ### Phase 8: Documentation & Tooling
+
 1. Add README for server package
 2. Document GraphQL API usage
 3. Set up ESLint configuration
@@ -820,6 +880,7 @@ The generated types ensure compile-time safety for all resolver signatures.
 ## Success Criteria
 
 **MVP Requirements:**
+
 - ✅ All 737 blocks load successfully without errors
 - ✅ All GraphQL queries return properly typed data
 - ✅ Zero `any` types in the codebase
@@ -832,6 +893,7 @@ The generated types ensure compile-time safety for all resolver signatures.
 - ✅ `Challenge.content` field returns `null` (future placeholder)
 
 **Architecture Validation:**
+
 - ✅ `DataProvider` abstraction isolates data access
 - ✅ Type system separates `ChallengeMetadata` from `ChallengeContent`
 - ✅ GraphQL schema includes content types (even if unused in MVP)
@@ -843,6 +905,7 @@ The generated types ensure compile-time safety for all resolver signatures.
 When ready to add full challenge content from database:
 
 ### Prerequisites
+
 - [ ] Database schema designed for challenge content
 - [ ] Content sync service built to populate database from curriculum source
 - [ ] Database deployed and populated with initial data
@@ -851,6 +914,7 @@ When ready to add full challenge content from database:
 ### Implementation Steps
 
 **1. Add Content Loader**
+
 ```typescript
 // packages/server/src/data/content-loader.ts
 interface ContentLoader {
@@ -860,7 +924,7 @@ interface ContentLoader {
 class DatabaseContentLoader implements ContentLoader {
   constructor(
     private db: Database,
-    private cache: LRUCache<string, ChallengeContent>
+    private cache: LRUCache<string, ChallengeContent>,
   ) {}
 
   async load(id: string): Promise<ChallengeContent | null> {
@@ -876,6 +940,7 @@ class DatabaseContentLoader implements ContentLoader {
 ```
 
 **2. Update DataProvider**
+
 ```typescript
 // Add method to interface
 interface DataProvider {
@@ -887,11 +952,13 @@ interface DataProvider {
 class HybridDataProvider implements DataProvider {
   constructor(
     private structureStore: DataStore,
-    private contentLoader: ContentLoader
+    private contentLoader: ContentLoader,
   ) {}
 
   // Existing methods unchanged
-  getCurriculum() { return this.structureStore.curriculum; }
+  getCurriculum() {
+    return this.structureStore.curriculum;
+  }
   // ...
 
   // New method
@@ -902,12 +969,13 @@ class HybridDataProvider implements DataProvider {
 ```
 
 **3. Update Resolver**
+
 ```typescript
 // packages/server/src/schema/resolvers/Challenge.ts
 export const Challenge: ChallengeResolvers = {
   content: async (parent, _args, context) => {
     // Check if provider supports content loading
-    if ('getChallengeContent' in context.dataProvider) {
+    if ("getChallengeContent" in context.dataProvider) {
       return context.dataProvider.getChallengeContent(parent.id);
     }
     return null;
@@ -916,10 +984,11 @@ export const Challenge: ChallengeResolvers = {
 ```
 
 **4. Update Configuration**
+
 ```typescript
 // packages/server/src/config.ts
 export async function createDataProvider(config: ServerConfig) {
-  if (config.mode === 'hybrid') {
+  if (config.mode === "hybrid") {
     const structureResult = await initializeDataStore(config.dataPath);
     if (!structureResult.success) throw structureResult.error;
 
@@ -940,6 +1009,7 @@ export async function createDataProvider(config: ServerConfig) {
 ```
 
 **5. Update Health Check**
+
 ```typescript
 interface HealthCheckResponse {
   // ... existing fields
@@ -952,6 +1022,7 @@ interface HealthCheckResponse {
 ```
 
 **6. Deploy**
+
 - [ ] Deploy database with content
 - [ ] Update environment variables (`DATA_MODE=hybrid`, `DATABASE_URL=...`)
 - [ ] Monitor memory usage (should stay under 100MB)

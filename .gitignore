@@ -102,4 +102,30 @@ dist
 
 # TernJS port file
 .tern-port
-data/
+
+# Project-specific (curriculum data at root only, not source code)
+/data/
+
+# Build outputs
+dist/
+build/
+
+# pnpm
+.pnpm-store/
+
+# Environment files
+.env*
+!.env.example
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Turborepo
+.turbo/

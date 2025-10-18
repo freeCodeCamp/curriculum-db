@@ -1,0 +1,39 @@
+{
+  "name": "@freecodecamp/server-gql",
+  "version": "1.0.0",
+  "description": "GraphQL API server for freeCodeCamp curriculum",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "develop": "tsx --watch src/index.ts",
+    "build": "tsc --build",
+    "type-check": "tsc --noEmit",
+    "format": "prettier --write src/",
+    "format:check": "prettier --check src/",
+    "codegen": "graphql-codegen --config codegen.ts",
+    "codegen:watch": "graphql-codegen --config codegen.ts --watch",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:ui": "vitest --ui",
+    "test:perf": "node --expose-gc --import tsx/esm src/__tests__/performance.test.ts",
+    "test:coverage": "vitest run --coverage"
+  },
+  "keywords": [
+    "freecodecamp",
+    "graphql",
+    "curriculum"
+  ],
+  "author": "freeCodeCamp",
+  "license": "BSD-3-Clause",
+  "devDependencies": {
+  "@graphql-codegen/cli": "^6.0.0",
+  "@graphql-codegen/typescript": "^5.0.2",
+  "@graphql-codegen/typescript-resolvers": "^5.1.0",
+  "@graphql-tools/executor-http": "^1.3.3"
+  },
+  "dependencies": {
+    "graphql": "^16.11.0",
+    "graphql-yoga": "^5.16.0"
+  }
+}

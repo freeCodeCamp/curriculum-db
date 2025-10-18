@@ -1,0 +1,307 @@
+"""
+freeCodeCamp Curriculum GraphQL API Schema
+Sprint 004 - Schema Definition and Code Generation
+
+This schema defines the complete API contract for curriculum metadata queries.
+All types map to internal TypeScript types via @graphql-codegen type mappers.
+
+Metadata/Content Separation:
+- Challenge metadata (id, title) always available
+- Challenge content (description, instructions, tests) returns null in MVP
+- ChallengeContent types included for future v2 database integration
+
+Type Mappers (configured in codegen.ts):
+- Curriculum → CurriculumData
+- Superblock → SuperblockData
+- Block → BlockData
+- Challenge → ChallengeMetadata (NOT full ChallengeData)
+- BlockLayout → BlockLayout enum
+- BlockType → BlockType enum
+"""
+
+type Query {
+  """Get complete curriculum structure"""
+  curriculum: Curriculum!
+
+  """Get single superblock by identifier"""
+  superblock(dashedName: String!): Superblock
+
+  """Get all superblocks"""
+  superblocks: [Superblock!]!
+
+  """Get single block by identifier"""
+  block(dashedName: String!): Block
+
+  """Get all blocks, optionally filtered by superblock"""
+  blocks(superblockDashedName: String): [Block!]!
+
+  """Get single challenge by ID"""
+  challenge(id: ID!): Challenge
+
+  """Get all challenges, optionally filtered by block"""
+  challenges(blockDashedName: String): [Challenge!]!
+
+  """Get all certification-eligible superblocks"""
+  certifications: [Certification!]!
+
+  """
+  Server health check query
+  Returns current operational status and data store metrics
+  Useful for monitoring dashboards and load balancers
+  """
+  _health: HealthCheck!
+}
+
+"""
+Top-level curriculum structure
+Contains lists of superblocks and certifications
+"""
+type Curriculum {
+  """Array of superblock identifiers (dashedNames)"""
+  superblocks: [String!]!
+
+  """Array of certification identifiers (subset of superblocks)"""
+  certifications: [String!]!
+}
+
+"""
+Major curriculum area (e.g., Responsive Web Design)
+Contains blocks and certification status
+"""
+type Superblock {
+  """Unique identifier (e.g., 'responsive-web-design')"""
+  dashedName: String!
+
+  """Array of block identifiers"""
+  blocks: [String!]!
+
+  """Resolved Block objects (convenience field for bidirectional navigation)"""
+  blockObjects: [Block!]!
+
+  """True if this superblock is certification-eligible"""
+  isCertification: Boolean!
+}
+
+"""
+Learning module within a superblock
+Contains challenges, layout information, and pedagogical metadata
+"""
+type Block {
+  """Human-readable name (e.g., 'Basic HTML')"""
+  name: String!
+
+  """Unique identifier (e.g., 'basic-html')"""
+  dashedName: String!
+
+  """Category for help/support (e.g., 'HTML-CSS')"""
+  helpCategory: String!
+
+  """Ordered list of challenges in this block"""
+  challengeOrder: [Challenge!]!
+
+  """UI layout type for this block"""
+  blockLayout: BlockLayout!
+
+  """Pedagogical classification (optional)"""
+  blockType: BlockType
+
+  """Flag indicating work-in-progress module"""
+  isUpcomingChange: Boolean!
+
+  """Flag indicating multi-file editor feature"""
+  usesMultifileEditor: Boolean
+
+  """Flag indicating editable region boundaries feature"""
+  hasEditableBoundaries: Boolean
+
+  """Parent superblock (reverse reference for bidirectional navigation)"""
+  superblock: Superblock!
+}
+
+"""
+UI layout types for blocks
+Determines how challenges are displayed in the frontend
+"""
+enum BlockLayout {
+  """Link-based navigation layout"""
+  LINK
+
+  """Vertical list of challenges"""
+  CHALLENGE_LIST
+
+  """Grid layout of challenges"""
+  CHALLENGE_GRID
+
+  """Interactive dialogue-based layout"""
+  DIALOGUE_GRID
+
+  """Project-focused list layout"""
+  PROJECT_LIST
+
+  """Legacy vertical list layout"""
+  LEGACY_CHALLENGE_LIST
+
+  """Legacy grid layout"""
+  LEGACY_CHALLENGE_GRID
+
+  """Legacy link-based layout"""
+  LEGACY_LINK
+}
+
+"""
+Pedagogical classification for blocks
+Describes the learning approach or activity type
+"""
+enum BlockType {
+  """Instructional content block"""
+  LECTURE
+
+  """Hands-on practice block"""
+  LAB
+
+  """Project-based learning block"""
+  WORKSHOP
+
+  """Concept review block"""
+  REVIEW
+
+  """Knowledge check block"""
+  QUIZ
+
+  """Formal assessment block"""
+  EXAM
+
+  """Preparatory exercises block"""
+  WARM_UP
+
+  """Skill reinforcement block"""
+  PRACTICE
+
+  """General learning block"""
+  LEARN
+}
+
+"""
+Individual coding challenge
+Metadata always available, content lazy-loaded in future v2
+"""
+type Challenge {
+  """Unique UUID identifier"""
+  id: ID!
+
+  """Challenge title"""
+  title: String!
+
+  """Parent block (reverse reference for bidirectional navigation)"""
+  block: Block!
+
+  """
+  Full challenge content - MVP returns null
+  Future v2: Lazy-loaded from database with LRU cache
+  Enables v2 migration without breaking changes
+  """
+  content: ChallengeContent
+}
+
+"""
+Full challenge content (future v2, returns null in MVP)
+Includes description, instructions, starter code, tests, and solutions
+"""
+type ChallengeContent {
+  """Challenge overview/description"""
+  description: String!
+
+  """Step-by-step instructions"""
+  instructions: String!
+
+  """Starter code files"""
+  files: [ChallengeFile!]!
+
+  """Validation tests"""
+  tests: [Test!]!
+
+  """Example solutions"""
+  solutions: [Solution!]!
+}
+
+"""
+Code file within a challenge or solution
+Contains file metadata and content
+"""
+type ChallengeFile {
+  """File name (e.g., 'index.html')"""
+  name: String!
+
+  """File extension (e.g., 'html')"""
+  ext: String!
+
+  """File content as string"""
+  contents: String!
+
+  """Line numbers defining editable regions (optional)"""
+  editableRegionBoundaries: [Int!]
+}
+
+"""
+Validation test for challenge submission
+Contains human-readable description and assertion code
+"""
+type Test {
+  """Human-readable test description"""
+  text: String!
+
+  """Test assertion code"""
+  testString: String!
+}
+
+"""
+Example solution for a challenge
+Contains solution code files
+"""
+type Solution {
+  """Solution code files"""
+  files: [ChallengeFile!]!
+}
+
+"""
+Certification wrapper around superblock
+Distinguishes certification-eligible curricula
+"""
+type Certification {
+  """Certification identifier (same as superblock dashedName)"""
+  dashedName: String!
+
+  """Reference to underlying superblock"""
+  superblock: Superblock!
+}
+
+"""
+Server health and operational metrics
+"""
+type HealthCheck {
+  """Current server health status (always 'healthy' in MVP)"""
+  status: String!
+
+  """Uptime in seconds since server became operational"""
+  uptime: Int!
+
+  """Curriculum data store statistics"""
+  dataStore: DataStoreMetrics!
+}
+
+"""
+Curriculum data store metrics and memory usage
+"""
+type DataStoreMetrics {
+  """Number of loaded superblocks"""
+  superblockCount: Int!
+
+  """Number of loaded blocks"""
+  blockCount: Int!
+
+  """Number of loaded challenge metadata entries"""
+  challengeCount: Int!
+
+  """Current heap memory usage in megabytes"""
+  memoryUsageMB: Float!
+}
