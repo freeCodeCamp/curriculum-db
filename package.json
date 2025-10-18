@@ -1,0 +1,13 @@
+{
+  "name": "@freecodecamp/curriculum-db",
+  "private": true,
+  "version": "0.0.0",
+  "description": "",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "Mrugesh Mohapatra <noreply@mrugesh.dev> (https://mrugesh.dev/)",
+  "license": "ISC",
+  "packageManager": "pnpm@10.18.0"
+}
