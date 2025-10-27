@@ -50,7 +50,7 @@ jobs:
             --file Dockerfile .
 
       - name: Install doctl
-        uses: digitalocean/action-doctl@58ec81179e2eaa350ef21d4df58f721c81ec2ba2 # v2
+        uses: digitalocean/action-doctl@v2
         with:
           token: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
 
