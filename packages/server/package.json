@@ -9,6 +9,7 @@
     "develop": "tsx --watch src/index.ts",
     "build": "tsc --build",
     "type-check": "tsc --noEmit",
+    "lint": "oxlint src",
     "format": "prettier --write src/",
     "format:check": "prettier --check src/",
     "codegen": "graphql-codegen --config codegen.ts",
@@ -16,7 +17,6 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:ui": "vitest --ui",
-    "test:perf": "node --expose-gc --import tsx/esm src/__tests__/performance.test.ts",
     "test:coverage": "vitest run --coverage"
   },
   "keywords": [

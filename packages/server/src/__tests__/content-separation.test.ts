@@ -4,6 +4,31 @@ import type { GraphQLExecutor } from './setup.js';
 import { createTestExecutor, getTestDataStore } from './setup.js';
 import { KNOWN_TEST_DATA } from './fixtures.js';
 import { expectValidGraphQLResponse, expectNullableField } from './helpers.js';
+import type {
+  BlockQueryResponse,
+  ChallengeQueryResponse,
+  ChallengesQueryResponse,
+  HealthCheckQueryResponse,
+} from './typed-helpers.js';
+
+// Introspection query response types
+type IntrospectionTypeResponse = {
+  __type: {
+    name: string;
+    kind: string;
+    fields: Array<{
+      name: string;
+      type: {
+        name: string | null;
+        kind: string;
+        ofType?: {
+          name: string | null;
+          kind: string;
+        } | null;
+      };
+    }>;
+  };
+};
 
 let executor: GraphQLExecutor;
 
@@ -15,7 +40,7 @@ describe('Content Separation Validation (US3)', () => {
   describe('Challenge.content field', () => {
     it('should return null for Challenge.content in MVP', async () => {
       // Get a valid challenge ID
-      const blockResult = await executor.execute({
+      const blockResult = await executor.execute<BlockQueryResponse>({
         document: parse(`
           query GetBlock($dashedName: String!) {
             block(dashedName: $dashedName) {
@@ -25,14 +50,14 @@ describe('Content Separation Validation (US3)', () => {
             }
           }
         `),
-        variables: { dashedName: KNOWN_TEST_DATA.validBlock }
+        variables: { dashedName: KNOWN_TEST_DATA.validBlock },
       });
 
       expectValidGraphQLResponse(blockResult);
-      const challengeId = blockResult.data.block.challengeOrder[0].id;
+      const challengeId = blockResult.data.block?.challengeOrder?.[0]?.id;
 
       // Query for challenge with content field
-      const result = await executor.execute({
+      const result = await executor.execute<ChallengeQueryResponse>({
         document: parse(`
           query GetChallengeWithContent($id: ID!) {
             challenge(id: $id) {
@@ -45,22 +70,22 @@ describe('Content Separation Validation (US3)', () => {
             }
           }
         `),
-        variables: { id: challengeId }
+        variables: { id: challengeId },
       });
 
       expectValidGraphQLResponse(result);
 
       const challenge = result.data.challenge;
-      expect(challenge.id).toBe(challengeId);
-      expect(challenge.title).toBeDefined();
+      expect(challenge?.id).toBe(challengeId);
+      expect(challenge?.title).toBeDefined();
 
       // Content must be null in MVP (architectural requirement)
-      expectNullableField(challenge.content, { expectNull: true });
+      expectNullableField(challenge?.content, { expectNull: true });
     });
 
     it('should return null for content across multiple challenges', async () => {
       // Get multiple challenges
-      const result = await executor.execute({
+      const result = await executor.execute<ChallengesQueryResponse>({
         document: parse(`
           query GetChallengesWithContent($blockDashedName: String!) {
             challenges(blockDashedName: $blockDashedName) {
@@ -72,7 +97,7 @@ describe('Content Separation Validation (US3)', () => {
             }
           }
         `),
-        variables: { blockDashedName: KNOWN_TEST_DATA.validBlock }
+        variables: { blockDashedName: KNOWN_TEST_DATA.validBlock },
       });
 
       expectValidGraphQLResponse(result);
@@ -113,7 +138,7 @@ describe('Content Separation Validation (US3)', () => {
     });
 
     it('should verify memory usage stays under 50MB threshold', async () => {
-      const result = await executor.execute({
+      const result = await executor.execute<HealthCheckQueryResponse>({
         document: parse(`
           query GetHealth {
             _health {
@@ -125,7 +150,7 @@ describe('Content Separation Validation (US3)', () => {
               }
             }
           }
-        `)
+        `),
       });
 
       expectValidGraphQLResponse(result);
@@ -148,7 +173,7 @@ describe('Content Separation Validation (US3)', () => {
   describe('Future-ready schema', () => {
     it('should have ChallengeContent type defined in schema for v2', async () => {
       // Query the schema introspection to verify ChallengeContent exists
-      const result = await executor.execute({
+      const result = await executor.execute<IntrospectionTypeResponse>({
         document: parse(`
           query IntrospectChallengeContent {
             __type(name: "ChallengeContent") {
@@ -163,7 +188,7 @@ describe('Content Separation Validation (US3)', () => {
               }
             }
           }
-        `)
+        `),
       });
 
       expectValidGraphQLResponse(result);
@@ -174,14 +199,14 @@ describe('Content Separation Validation (US3)', () => {
       expect(contentType.kind).toBe('OBJECT');
 
       // Verify expected fields exist
-      const fieldNames = contentType.fields.map((f: any) => f.name);
+      const fieldNames = contentType.fields.map((f) => f.name);
       expect(fieldNames).toContain('description');
       expect(fieldNames).toContain('instructions');
     });
 
     it('should make Challenge.content nullable in schema', async () => {
       // Introspect Challenge type to verify content is nullable
-      const result = await executor.execute({
+      const result = await executor.execute<IntrospectionTypeResponse>({
         document: parse(`
           query IntrospectChallenge {
             __type(name: "Challenge") {
@@ -199,19 +224,21 @@ describe('Content Separation Validation (US3)', () => {
               }
             }
           }
-        `)
+        `),
       });
 
       expectValidGraphQLResponse(result);
 
       const challengeType = result.data.__type;
-      const contentField = challengeType.fields.find((f: any) => f.name === 'content');
+      const contentField = challengeType.fields.find(
+        (f) => f.name === 'content'
+      );
 
       expect(contentField).toBeDefined();
 
       // Content field should be nullable (kind is not NON_NULL)
-      expect(contentField.type.kind).not.toBe('NON_NULL');
-      expect(contentField.type.name).toBe('ChallengeContent');
+      expect(contentField?.type.kind).not.toBe('NON_NULL');
+      expect(contentField?.type.name).toBe('ChallengeContent');
     });
   });
 });

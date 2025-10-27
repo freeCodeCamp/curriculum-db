@@ -55,7 +55,10 @@ export async function initializeDataStore(
   // Phase 3: Collect all block names from all superblocks
   // Note: Some superblocks use a different structure (chapters/modules) and are skipped
   const allBlockNames: string[] = [];
-  const validSuperblocks = new Map<string, import('./types.js').RawSuperblock>();
+  const validSuperblocks = new Map<
+    string,
+    import('./types.js').RawSuperblock
+  >();
 
   for (const [superblockName, superblock] of rawSuperblocks.entries()) {
     // Skip superblocks with non-standard structure (e.g., chapters/modules)

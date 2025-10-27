@@ -14,7 +14,9 @@ function findTypeScriptFiles(dir: string, fileList: string[] = []): string[] {
 
     if (stat.isDirectory()) {
       // Skip node_modules, dist, build, coverage
-      if (!['node_modules', 'dist', 'build', 'coverage', '.git'].includes(file)) {
+      if (
+        !['node_modules', 'dist', 'build', 'coverage', '.git'].includes(file)
+      ) {
         findTypeScriptFiles(filePath, fileList);
       }
     } else if (extname(file) === '.ts' && !file.endsWith('.test.ts')) {
@@ -47,8 +49,11 @@ function checkForAnyKeyword(filePath: string): Array<{
 
     // Look for `: any` or `<any>` or `as any`
     // Allow the specific GraphQL Yoga type workaround
-    if (line && /:\s*any\b|<any>|as\s+any\b/.test(line) &&
-        !line.includes('GraphQL Yoga internal types are complex and external')) {
+    if (
+      line &&
+      /:\s*any\b|<any>|as\s+any\b/.test(line) &&
+      !line.includes('GraphQL Yoga internal types are complex and external')
+    ) {
       matches.push({
         line: i + 1,
         content: line.trim(),
@@ -68,14 +73,17 @@ describe('Type Safety Validation (US4)', () => {
       expect(sourceFiles.length).toBeGreaterThan(0);
 
       // Should include key files
-      const fileNames = sourceFiles.map(f => f.split('/').pop());
+      const fileNames = sourceFiles.map((f) => f.split('/').pop());
       expect(fileNames).toContain('index.ts');
       expect(fileNames).toContain('server.ts');
     });
 
     it('should scan all TypeScript source files for any type usage', () => {
       // Scan non-generated source files
-      const violations: Array<{ file: string; matches: Array<{ line: number; content: string }> }> = [];
+      const violations: Array<{
+        file: string;
+        matches: Array<{ line: number; content: string }>;
+      }> = [];
 
       for (const file of sourceFiles) {
         // Skip generated files
@@ -104,10 +112,13 @@ describe('Type Safety Validation (US4)', () => {
     });
 
     it('should verify data loading modules use explicit types', () => {
-      const dataFiles = sourceFiles.filter(f => f.includes('/data/'));
+      const dataFiles = sourceFiles.filter((f) => f.includes('/data/'));
       expect(dataFiles.length).toBeGreaterThan(0);
 
-      const violations: Array<{ file: string; matches: Array<{ line: number; content: string }> }> = [];
+      const violations: Array<{
+        file: string;
+        matches: Array<{ line: number; content: string }>;
+      }> = [];
 
       for (const file of dataFiles) {
         const matches = checkForAnyKeyword(file);
@@ -131,10 +142,15 @@ describe('Type Safety Validation (US4)', () => {
     });
 
     it('should verify resolver modules use explicit types', () => {
-      const resolverFiles = sourceFiles.filter(f => f.includes('/resolvers/'));
+      const resolverFiles = sourceFiles.filter((f) =>
+        f.includes('/resolvers/')
+      );
       expect(resolverFiles.length).toBeGreaterThan(0);
 
-      const violations: Array<{ file: string; matches: Array<{ line: number; content: string }> }> = [];
+      const violations: Array<{
+        file: string;
+        matches: Array<{ line: number; content: string }>;
+      }> = [];
 
       for (const file of resolverFiles) {
         const matches = checkForAnyKeyword(file);
@@ -170,7 +186,9 @@ describe('Type Safety Validation (US4)', () => {
       //
       // What we want to ensure is that OUR code doesn't use any types
 
-      console.log(`\nℹ️  Generated types contain ${matches.length} any usages (acceptable in codegen output)`);
+      console.log(
+        `\nℹ️  Generated types contain ${matches.length} any usages (acceptable in codegen output)`
+      );
 
       // Log for visibility but don't fail - these are from codegen, not our code
       if (matches.length > 0) {
@@ -204,8 +222,12 @@ describe('Type Safety Validation (US4)', () => {
       console.log('\n✅ Type Safety Summary:');
       console.log(`  - Scanned ${sourceFiles.length} TypeScript files`);
       console.log(`  - Any types found (source code): ${totalRegexMatches}`);
-      console.log(`  - Any types found (generated): ${generatedFileMatches} (acceptable)`);
-      console.log(`  - Constitutional requirement: Zero any types in source code ✓`);
+      console.log(
+        `  - Any types found (generated): ${generatedFileMatches} (acceptable)`
+      );
+      console.log(
+        `  - Constitutional requirement: Zero any types in source code ✓`
+      );
 
       // Only count violations in source code, not generated files
       expect(totalRegexMatches).toBe(0);

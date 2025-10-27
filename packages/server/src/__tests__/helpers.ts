@@ -6,14 +6,19 @@ import type { ExecutionResult } from 'graphql';
  */
 export function expectValidGraphQLResponse<TData>(
   result: ExecutionResult<TData>
-): asserts result is ExecutionResult<TData> & { data: TData; errors: undefined } {
+): asserts result is ExecutionResult<TData> & {
+  data: TData;
+  errors: undefined;
+} {
   if (result.errors) {
     throw new Error(
       `Expected GraphQL response to have no errors, but found: ${JSON.stringify(result.errors, null, 2)}`
     );
   }
   if (result.data === undefined) {
-    throw new Error('Expected GraphQL response to have data, but data was undefined');
+    throw new Error(
+      'Expected GraphQL response to have data, but data was undefined'
+    );
   }
 }
 
@@ -33,7 +38,9 @@ export function expectNullableField<T>(
   }
 
   if (options?.expectNull === true && value !== null) {
-    throw new Error(`Expected nullable field to be null, but was: ${JSON.stringify(value)}`);
+    throw new Error(
+      `Expected nullable field to be null, but was: ${JSON.stringify(value)}`
+    );
   }
 
   if (options?.expectNull === false && value === null) {
@@ -63,9 +70,9 @@ export interface PerformanceThresholds {
  * Default performance thresholds from spec.md
  */
 export const PERFORMANCE_THRESHOLDS: PerformanceThresholds = {
-  startupTimeMs: 1000,  // <1 second
-  memoryUsageMB: 50,    // <50MB for metadata
-  queryLatencyMs: 50    // <50ms per query
+  startupTimeMs: 1000, // <1 second
+  memoryUsageMB: 50, // <50MB for metadata
+  queryLatencyMs: 50, // <50ms per query
 };
 
 /**
@@ -105,7 +112,9 @@ export function expectPerformanceWithinThreshold(
   }
 
   if (errors.length > 0) {
-    throw new Error(`Performance thresholds exceeded:\n  - ${errors.join('\n  - ')}`);
+    throw new Error(
+      `Performance thresholds exceeded:\n  - ${errors.join('\n  - ')}`
+    );
   }
 }
 

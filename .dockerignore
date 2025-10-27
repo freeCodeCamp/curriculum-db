@@ -1,0 +1,67 @@
+# Dependencies
+node_modules
+.pnpm-store
+
+# Build outputs (will be built in container)
+dist
+build
+*.tsbuildinfo
+
+# Development files
+.env
+.env.local
+.env.development
+.env.test
+
+# Testing
+coverage
+.vitest
+
+# Git
+.git
+.gitignore
+.gitattributes
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Turbo
+.turbo
+
+# Documentation (not needed in runtime)
+docs
+README.md
+LICENSE
+
+# CI/CD
+.github
+
+# Serena
+.serena
+
+# Claude
+.claude
+
+# Specify
+.specify
+
+# Development scripts (not needed in production runtime)
+
+# Docker files (already in image context)
+Dockerfile
+docker-compose.yml
+.dockerignore

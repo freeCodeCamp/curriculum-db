@@ -11,7 +11,7 @@ async function main() {
   const DATA_PATH = process.env.DATA_PATH ?? '../../data/structure';
   const CORS_ORIGIN =
     process.env.NODE_ENV === 'production'
-      ? process.env.CORS_ORIGIN ?? '*'
+      ? (process.env.CORS_ORIGIN ?? '*')
       : '*';
 
   // Validate configuration
@@ -34,7 +34,10 @@ async function main() {
     console.error('\nError: Failed to load curriculum data');
     console.error('Details:', result.error.message);
     if ('filePath' in result.error) {
-      console.error('File:', (result.error as Error & { filePath: string }).filePath);
+      console.error(
+        'File:',
+        (result.error as Error & { filePath: string }).filePath
+      );
     }
     console.error('\nStack trace:');
     console.error(result.error.stack);

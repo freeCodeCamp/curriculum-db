@@ -43,7 +43,10 @@ const VALID_BLOCK_TYPES: readonly RawBlockType[] = [
  * Intentionally permissive to handle evolving curriculum structure
  * @returns Result success (always succeeds - validation skipped for non-standard structures)
  */
-export function validateCurriculumReferences(): Result<void, DataValidationError> {
+export function validateCurriculumReferences(): Result<
+  void,
+  DataValidationError
+> {
   // Only validate loaded superblocks (some may be skipped due to non-standard structure)
   // This is intentionally permissive to handle curriculum evolution
   // Note: Certification validation is skipped as curriculum data may have historical/legacy entries

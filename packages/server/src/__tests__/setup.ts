@@ -12,9 +12,13 @@ let cachedDataProvider: DataProvider | null = null;
 
 /**
  * GraphQL executor interface for testing
+ * TData must be explicitly specified to ensure type safety
  */
 export interface GraphQLExecutor {
-  execute<TData = any, TVariables extends Record<string, any> = Record<string, any>>(request: {
+  execute<
+    TData,
+    TVariables extends Record<string, unknown> = Record<string, unknown>,
+  >(request: {
     document: DocumentNode;
     variables?: TVariables;
     operationName?: string;
@@ -29,7 +33,9 @@ async function getCachedDataStore(): Promise<DataStore> {
   if (!cachedDataStore) {
     const result = await initializeDataStore('../../data/structure');
     if (!result.success) {
-      throw new Error(`Failed to initialize DataStore: ${result.error.message}`);
+      throw new Error(
+        `Failed to initialize DataStore: ${result.error.message}`
+      );
     }
     cachedDataStore = result.data;
     cachedDataProvider = new InMemoryDataProvider(cachedDataStore);
@@ -69,7 +75,8 @@ export async function createTestExecutor(): Promise<GraphQLExecutor> {
   const contextFactory = () => {
     return {
       getCurriculum: () => dataProvider.getCurriculum(),
-      getSuperblock: (dashedName: string) => dataProvider.getSuperblock(dashedName),
+      getSuperblock: (dashedName: string) =>
+        dataProvider.getSuperblock(dashedName),
       getBlock: (dashedName: string) => dataProvider.getBlock(dashedName),
       getChallenge: (id: string) => dataProvider.getChallenge(id),
     };
@@ -77,16 +84,19 @@ export async function createTestExecutor(): Promise<GraphQLExecutor> {
 
   const yoga = createYoga({
     schema,
-    context: contextFactory
+    context: contextFactory,
   });
 
   const executor = buildHTTPExecutor({
     fetch: yoga.fetch.bind(yoga),
-    endpoint: 'http://yoga/graphql'
+    endpoint: 'http://yoga/graphql',
   });
 
   return {
-    execute: async <TData = any, TVariables extends Record<string, any> = Record<string, any>>(request: {
+    execute: async <
+      TData,
+      TVariables extends Record<string, unknown> = Record<string, unknown>,
+    >(request: {
       document: DocumentNode;
       variables?: TVariables;
       operationName?: string;
@@ -94,10 +104,10 @@ export async function createTestExecutor(): Promise<GraphQLExecutor> {
       const executorRequest = {
         document: request.document,
         ...(request.operationName && { operationName: request.operationName }),
-        ...(request.variables && { variables: request.variables })
+        ...(request.variables && { variables: request.variables }),
       };
       return executor(executorRequest) as Promise<ExecutionResult<TData>>;
-    }
+    },
   };
 }
 

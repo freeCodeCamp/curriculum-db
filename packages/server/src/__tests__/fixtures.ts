@@ -9,7 +9,7 @@ export const KNOWN_TEST_DATA = {
   validBlock: 'learn-html-by-building-a-cat-photo-app',
   nonExistentSuperblock: 'non-existent-superblock-12345',
   nonExistentBlock: 'non-existent-block-12345',
-  nonExistentChallengeId: 'non-existent-challenge-12345'
+  nonExistentChallengeId: 'non-existent-challenge-12345',
 } as const;
 
 /**
@@ -128,5 +128,5 @@ export const TEST_QUERIES = {
         memoryUsageMB
       }
     }
-  `)
+  `),
 };
