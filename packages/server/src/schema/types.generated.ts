@@ -1,23 +1,47 @@
 import { BlockLayout } from '../data/types.js';
 import { BlockType } from '../data/types.js';
 import { GraphQLResolveInfo } from 'graphql';
-import { CurriculumData, SuperblockData, BlockData, ChallengeMetadata, CertificationData, DataProvider } from '../data/types.js';
+import {
+  CurriculumData,
+  SuperblockData,
+  BlockData,
+  ChallengeMetadata,
+  CertificationData,
+  DataProvider,
+} from '../data/types.js';
 export type Maybe<T> = T | null;
 export type InputMaybe<T> = Maybe<T>;
-export type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
-export type MakeOptional<T, K extends keyof T> = Omit<T, K> & { [SubKey in K]?: Maybe<T[SubKey]> };
-export type MakeMaybe<T, K extends keyof T> = Omit<T, K> & { [SubKey in K]: Maybe<T[SubKey]> };
-export type MakeEmpty<T extends { [key: string]: unknown }, K extends keyof T> = { [_ in K]?: never };
-export type Incremental<T> = T | { [P in keyof T]?: P extends ' $fragmentName' | '__typename' ? T[P] : never };
-export type EnumResolverSignature<T, AllowedValues = any> = { [key in keyof T]?: AllowedValues };
-export type RequireFields<T, K extends keyof T> = Omit<T, K> & { [P in K]-?: NonNullable<T[P]> };
+export type Exact<T extends { [key: string]: unknown }> = {
+  [K in keyof T]: T[K];
+};
+export type MakeOptional<T, K extends keyof T> = Omit<T, K> & {
+  [SubKey in K]?: Maybe<T[SubKey]>;
+};
+export type MakeMaybe<T, K extends keyof T> = Omit<T, K> & {
+  [SubKey in K]: Maybe<T[SubKey]>;
+};
+export type MakeEmpty<
+  T extends { [key: string]: unknown },
+  K extends keyof T,
+> = { [_ in K]?: never };
+export type Incremental<T> =
+  | T
+  | {
+      [P in keyof T]?: P extends ' $fragmentName' | '__typename' ? T[P] : never;
+    };
+export type EnumResolverSignature<T, AllowedValues = any> = {
+  [key in keyof T]?: AllowedValues;
+};
+export type RequireFields<T, K extends keyof T> = Omit<T, K> & {
+  [P in K]-?: NonNullable<T[P]>;
+};
 /** All built-in and custom scalars, mapped to their actual values */
 export type Scalars = {
-  ID: { input: string; output: string; }
-  String: { input: string; output: string; }
-  Boolean: { input: boolean; output: boolean; }
-  Int: { input: number; output: number; }
-  Float: { input: number; output: number; }
+  ID: { input: string; output: string };
+  String: { input: string; output: string };
+  Boolean: { input: boolean; output: boolean };
+  Int: { input: number; output: number };
+  Float: { input: number; output: number };
 };
 
 /**
@@ -191,7 +215,6 @@ export type Query = {
   superblocks: Array<Superblock>;
 };
 
-
 /**
  * freeCodeCamp Curriculum GraphQL API Schema
  * Sprint 004 - Schema Definition and Code Generation
@@ -215,7 +238,6 @@ export type Query = {
 export type QueryBlockArgs = {
   dashedName: Scalars['String']['input'];
 };
-
 
 /**
  * freeCodeCamp Curriculum GraphQL API Schema
@@ -241,7 +263,6 @@ export type QueryBlocksArgs = {
   superblockDashedName: InputMaybe<Scalars['String']['input']>;
 };
 
-
 /**
  * freeCodeCamp Curriculum GraphQL API Schema
  * Sprint 004 - Schema Definition and Code Generation
@@ -266,7 +287,6 @@ export type QueryChallengeArgs = {
   id: Scalars['ID']['input'];
 };
 
-
 /**
  * freeCodeCamp Curriculum GraphQL API Schema
  * Sprint 004 - Schema Definition and Code Generation
@@ -290,7 +310,6 @@ export type QueryChallengeArgs = {
 export type QueryChallengesArgs = {
   blockDashedName: InputMaybe<Scalars['String']['input']>;
 };
-
 
 /**
  * freeCodeCamp Curriculum GraphQL API Schema
@@ -351,15 +370,19 @@ export type Test = {
   text: Scalars['String']['output'];
 };
 
-
-
 export type ResolverTypeWrapper<T> = Promise<T> | T;
-
 
 export type ResolverWithResolve<TResult, TParent, TContext, TArgs> = {
   resolve: ResolverFn<TResult, TParent, TContext, TArgs>;
 };
-export type Resolver<TResult, TParent = Record<PropertyKey, never>, TContext = Record<PropertyKey, never>, TArgs = Record<PropertyKey, never>> = ResolverFn<TResult, TParent, TContext, TArgs> | ResolverWithResolve<TResult, TParent, TContext, TArgs>;
+export type Resolver<
+  TResult,
+  TParent = Record<PropertyKey, never>,
+  TContext = Record<PropertyKey, never>,
+  TArgs = Record<PropertyKey, never>,
+> =
+  | ResolverFn<TResult, TParent, TContext, TArgs>
+  | ResolverWithResolve<TResult, TParent, TContext, TArgs>;
 
 export type ResolverFn<TResult, TParent, TContext, TArgs> = (
   parent: TParent,
@@ -382,9 +405,25 @@ export type SubscriptionResolveFn<TResult, TParent, TContext, TArgs> = (
   info: GraphQLResolveInfo
 ) => TResult | Promise<TResult>;
 
-export interface SubscriptionSubscriberObject<TResult, TKey extends string, TParent, TContext, TArgs> {
-  subscribe: SubscriptionSubscribeFn<{ [key in TKey]: TResult }, TParent, TContext, TArgs>;
-  resolve?: SubscriptionResolveFn<TResult, { [key in TKey]: TResult }, TContext, TArgs>;
+export interface SubscriptionSubscriberObject<
+  TResult,
+  TKey extends string,
+  TParent,
+  TContext,
+  TArgs,
+> {
+  subscribe: SubscriptionSubscribeFn<
+    { [key in TKey]: TResult },
+    TParent,
+    TContext,
+    TArgs
+  >;
+  resolve?: SubscriptionResolveFn<
+    TResult,
+    { [key in TKey]: TResult },
+    TContext,
+    TArgs
+  >;
 }
 
 export interface SubscriptionResolverObject<TResult, TParent, TContext, TArgs> {
@@ -392,35 +431,61 @@ export interface SubscriptionResolverObject<TResult, TParent, TContext, TArgs> {
   resolve: SubscriptionResolveFn<TResult, any, TContext, TArgs>;
 }
 
-export type SubscriptionObject<TResult, TKey extends string, TParent, TContext, TArgs> =
+export type SubscriptionObject<
+  TResult,
+  TKey extends string,
+  TParent,
+  TContext,
+  TArgs,
+> =
   | SubscriptionSubscriberObject<TResult, TKey, TParent, TContext, TArgs>
   | SubscriptionResolverObject<TResult, TParent, TContext, TArgs>;
 
-export type SubscriptionResolver<TResult, TKey extends string, TParent = Record<PropertyKey, never>, TContext = Record<PropertyKey, never>, TArgs = Record<PropertyKey, never>> =
-  | ((...args: any[]) => SubscriptionObject<TResult, TKey, TParent, TContext, TArgs>)
+export type SubscriptionResolver<
+  TResult,
+  TKey extends string,
+  TParent = Record<PropertyKey, never>,
+  TContext = Record<PropertyKey, never>,
+  TArgs = Record<PropertyKey, never>,
+> =
+  | ((
+      ...args: any[]
+    ) => SubscriptionObject<TResult, TKey, TParent, TContext, TArgs>)
   | SubscriptionObject<TResult, TKey, TParent, TContext, TArgs>;
 
-export type TypeResolveFn<TTypes, TParent = Record<PropertyKey, never>, TContext = Record<PropertyKey, never>> = (
+export type TypeResolveFn<
+  TTypes,
+  TParent = Record<PropertyKey, never>,
+  TContext = Record<PropertyKey, never>,
+> = (
   parent: TParent,
   context: TContext,
   info: GraphQLResolveInfo
 ) => Maybe<TTypes> | Promise<Maybe<TTypes>>;
 
-export type IsTypeOfResolverFn<T = Record<PropertyKey, never>, TContext = Record<PropertyKey, never>> = (obj: T, context: TContext, info: GraphQLResolveInfo) => boolean | Promise<boolean>;
+export type IsTypeOfResolverFn<
+  T = Record<PropertyKey, never>,
+  TContext = Record<PropertyKey, never>,
+> = (
+  obj: T,
+  context: TContext,
+  info: GraphQLResolveInfo
+) => boolean | Promise<boolean>;
 
 export type NextResolverFn<T> = () => Promise<T>;
 
-export type DirectiveResolverFn<TResult = Record<PropertyKey, never>, TParent = Record<PropertyKey, never>, TContext = Record<PropertyKey, never>, TArgs = Record<PropertyKey, never>> = (
+export type DirectiveResolverFn<
+  TResult = Record<PropertyKey, never>,
+  TParent = Record<PropertyKey, never>,
+  TContext = Record<PropertyKey, never>,
+  TArgs = Record<PropertyKey, never>,
+> = (
   next: NextResolverFn<TResult>,
   parent: TParent,
   args: TArgs,
   context: TContext,
   info: GraphQLResolveInfo
 ) => TResult | Promise<TResult>;
-
-
-
-
 
 /** Mapping between all available schema types and the resolvers types */
 export type ResolversTypes = {
@@ -466,92 +531,262 @@ export type ResolversParentTypes = {
   Test: Test;
 };
 
-export type BlockResolvers<ContextType = DataProvider, ParentType extends ResolversParentTypes['Block'] = ResolversParentTypes['Block']> = {
-  blockLayout?: Resolver<ResolversTypes['BlockLayout'], ParentType, ContextType>;
-  blockType?: Resolver<Maybe<ResolversTypes['BlockType']>, ParentType, ContextType>;
-  challengeOrder?: Resolver<Array<ResolversTypes['Challenge']>, ParentType, ContextType>;
+export type BlockResolvers<
+  ContextType = DataProvider,
+  ParentType extends
+    ResolversParentTypes['Block'] = ResolversParentTypes['Block'],
+> = {
+  blockLayout?: Resolver<
+    ResolversTypes['BlockLayout'],
+    ParentType,
+    ContextType
+  >;
+  blockType?: Resolver<
+    Maybe<ResolversTypes['BlockType']>,
+    ParentType,
+    ContextType
+  >;
+  challengeOrder?: Resolver<
+    Array<ResolversTypes['Challenge']>,
+    ParentType,
+    ContextType
+  >;
   dashedName?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  hasEditableBoundaries?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
+  hasEditableBoundaries?: Resolver<
+    Maybe<ResolversTypes['Boolean']>,
+    ParentType,
+    ContextType
+  >;
   helpCategory?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  isUpcomingChange?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+  isUpcomingChange?: Resolver<
+    ResolversTypes['Boolean'],
+    ParentType,
+    ContextType
+  >;
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   superblock?: Resolver<ResolversTypes['Superblock'], ParentType, ContextType>;
-  usesMultifileEditor?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
+  usesMultifileEditor?: Resolver<
+    Maybe<ResolversTypes['Boolean']>,
+    ParentType,
+    ContextType
+  >;
 };
 
-export type BlockLayoutResolvers = EnumResolverSignature<{ CHALLENGE_GRID?: any, CHALLENGE_LIST?: any, DIALOGUE_GRID?: any, LEGACY_CHALLENGE_GRID?: any, LEGACY_CHALLENGE_LIST?: any, LEGACY_LINK?: any, LINK?: any, PROJECT_LIST?: any }, ResolversTypes['BlockLayout']>;
+export type BlockLayoutResolvers = EnumResolverSignature<
+  {
+    CHALLENGE_GRID?: any;
+    CHALLENGE_LIST?: any;
+    DIALOGUE_GRID?: any;
+    LEGACY_CHALLENGE_GRID?: any;
+    LEGACY_CHALLENGE_LIST?: any;
+    LEGACY_LINK?: any;
+    LINK?: any;
+    PROJECT_LIST?: any;
+  },
+  ResolversTypes['BlockLayout']
+>;
 
-export type BlockTypeResolvers = EnumResolverSignature<{ EXAM?: any, LAB?: any, LEARN?: any, LECTURE?: any, PRACTICE?: any, QUIZ?: any, REVIEW?: any, WARM_UP?: any, WORKSHOP?: any }, ResolversTypes['BlockType']>;
+export type BlockTypeResolvers = EnumResolverSignature<
+  {
+    EXAM?: any;
+    LAB?: any;
+    LEARN?: any;
+    LECTURE?: any;
+    PRACTICE?: any;
+    QUIZ?: any;
+    REVIEW?: any;
+    WARM_UP?: any;
+    WORKSHOP?: any;
+  },
+  ResolversTypes['BlockType']
+>;
 
-export type CertificationResolvers<ContextType = DataProvider, ParentType extends ResolversParentTypes['Certification'] = ResolversParentTypes['Certification']> = {
+export type CertificationResolvers<
+  ContextType = DataProvider,
+  ParentType extends
+    ResolversParentTypes['Certification'] = ResolversParentTypes['Certification'],
+> = {
   dashedName?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   superblock?: Resolver<ResolversTypes['Superblock'], ParentType, ContextType>;
 };
 
-export type ChallengeResolvers<ContextType = DataProvider, ParentType extends ResolversParentTypes['Challenge'] = ResolversParentTypes['Challenge']> = {
+export type ChallengeResolvers<
+  ContextType = DataProvider,
+  ParentType extends
+    ResolversParentTypes['Challenge'] = ResolversParentTypes['Challenge'],
+> = {
   block?: Resolver<ResolversTypes['Block'], ParentType, ContextType>;
-  content?: Resolver<Maybe<ResolversTypes['ChallengeContent']>, ParentType, ContextType>;
+  content?: Resolver<
+    Maybe<ResolversTypes['ChallengeContent']>,
+    ParentType,
+    ContextType
+  >;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   title?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
 };
 
-export type ChallengeContentResolvers<ContextType = DataProvider, ParentType extends ResolversParentTypes['ChallengeContent'] = ResolversParentTypes['ChallengeContent']> = {
+export type ChallengeContentResolvers<
+  ContextType = DataProvider,
+  ParentType extends
+    ResolversParentTypes['ChallengeContent'] = ResolversParentTypes['ChallengeContent'],
+> = {
   description?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  files?: Resolver<Array<ResolversTypes['ChallengeFile']>, ParentType, ContextType>;
+  files?: Resolver<
+    Array<ResolversTypes['ChallengeFile']>,
+    ParentType,
+    ContextType
+  >;
   instructions?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  solutions?: Resolver<Array<ResolversTypes['Solution']>, ParentType, ContextType>;
+  solutions?: Resolver<
+    Array<ResolversTypes['Solution']>,
+    ParentType,
+    ContextType
+  >;
   tests?: Resolver<Array<ResolversTypes['Test']>, ParentType, ContextType>;
 };
 
-export type ChallengeFileResolvers<ContextType = DataProvider, ParentType extends ResolversParentTypes['ChallengeFile'] = ResolversParentTypes['ChallengeFile']> = {
+export type ChallengeFileResolvers<
+  ContextType = DataProvider,
+  ParentType extends
+    ResolversParentTypes['ChallengeFile'] = ResolversParentTypes['ChallengeFile'],
+> = {
   contents?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  editableRegionBoundaries?: Resolver<Maybe<Array<ResolversTypes['Int']>>, ParentType, ContextType>;
+  editableRegionBoundaries?: Resolver<
+    Maybe<Array<ResolversTypes['Int']>>,
+    ParentType,
+    ContextType
+  >;
   ext?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
 };
 
-export type CurriculumResolvers<ContextType = DataProvider, ParentType extends ResolversParentTypes['Curriculum'] = ResolversParentTypes['Curriculum']> = {
-  certifications?: Resolver<Array<ResolversTypes['String']>, ParentType, ContextType>;
-  superblocks?: Resolver<Array<ResolversTypes['String']>, ParentType, ContextType>;
+export type CurriculumResolvers<
+  ContextType = DataProvider,
+  ParentType extends
+    ResolversParentTypes['Curriculum'] = ResolversParentTypes['Curriculum'],
+> = {
+  certifications?: Resolver<
+    Array<ResolversTypes['String']>,
+    ParentType,
+    ContextType
+  >;
+  superblocks?: Resolver<
+    Array<ResolversTypes['String']>,
+    ParentType,
+    ContextType
+  >;
 };
 
-export type DataStoreMetricsResolvers<ContextType = DataProvider, ParentType extends ResolversParentTypes['DataStoreMetrics'] = ResolversParentTypes['DataStoreMetrics']> = {
+export type DataStoreMetricsResolvers<
+  ContextType = DataProvider,
+  ParentType extends
+    ResolversParentTypes['DataStoreMetrics'] = ResolversParentTypes['DataStoreMetrics'],
+> = {
   blockCount?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   challengeCount?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   memoryUsageMB?: Resolver<ResolversTypes['Float'], ParentType, ContextType>;
   superblockCount?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
 };
 
-export type HealthCheckResolvers<ContextType = DataProvider, ParentType extends ResolversParentTypes['HealthCheck'] = ResolversParentTypes['HealthCheck']> = {
-  dataStore?: Resolver<ResolversTypes['DataStoreMetrics'], ParentType, ContextType>;
+export type HealthCheckResolvers<
+  ContextType = DataProvider,
+  ParentType extends
+    ResolversParentTypes['HealthCheck'] = ResolversParentTypes['HealthCheck'],
+> = {
+  dataStore?: Resolver<
+    ResolversTypes['DataStoreMetrics'],
+    ParentType,
+    ContextType
+  >;
   status?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   uptime?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
 };
 
-export type QueryResolvers<ContextType = DataProvider, ParentType extends ResolversParentTypes['Query'] = ResolversParentTypes['Query']> = {
+export type QueryResolvers<
+  ContextType = DataProvider,
+  ParentType extends
+    ResolversParentTypes['Query'] = ResolversParentTypes['Query'],
+> = {
   _health?: Resolver<ResolversTypes['HealthCheck'], ParentType, ContextType>;
-  block?: Resolver<Maybe<ResolversTypes['Block']>, ParentType, ContextType, RequireFields<QueryBlockArgs, 'dashedName'>>;
-  blocks?: Resolver<Array<ResolversTypes['Block']>, ParentType, ContextType, Partial<QueryBlocksArgs>>;
-  certifications?: Resolver<Array<ResolversTypes['Certification']>, ParentType, ContextType>;
-  challenge?: Resolver<Maybe<ResolversTypes['Challenge']>, ParentType, ContextType, RequireFields<QueryChallengeArgs, 'id'>>;
-  challenges?: Resolver<Array<ResolversTypes['Challenge']>, ParentType, ContextType, Partial<QueryChallengesArgs>>;
+  block?: Resolver<
+    Maybe<ResolversTypes['Block']>,
+    ParentType,
+    ContextType,
+    RequireFields<QueryBlockArgs, 'dashedName'>
+  >;
+  blocks?: Resolver<
+    Array<ResolversTypes['Block']>,
+    ParentType,
+    ContextType,
+    Partial<QueryBlocksArgs>
+  >;
+  certifications?: Resolver<
+    Array<ResolversTypes['Certification']>,
+    ParentType,
+    ContextType
+  >;
+  challenge?: Resolver<
+    Maybe<ResolversTypes['Challenge']>,
+    ParentType,
+    ContextType,
+    RequireFields<QueryChallengeArgs, 'id'>
+  >;
+  challenges?: Resolver<
+    Array<ResolversTypes['Challenge']>,
+    ParentType,
+    ContextType,
+    Partial<QueryChallengesArgs>
+  >;
   curriculum?: Resolver<ResolversTypes['Curriculum'], ParentType, ContextType>;
-  superblock?: Resolver<Maybe<ResolversTypes['Superblock']>, ParentType, ContextType, RequireFields<QuerySuperblockArgs, 'dashedName'>>;
-  superblocks?: Resolver<Array<ResolversTypes['Superblock']>, ParentType, ContextType>;
+  superblock?: Resolver<
+    Maybe<ResolversTypes['Superblock']>,
+    ParentType,
+    ContextType,
+    RequireFields<QuerySuperblockArgs, 'dashedName'>
+  >;
+  superblocks?: Resolver<
+    Array<ResolversTypes['Superblock']>,
+    ParentType,
+    ContextType
+  >;
 };
 
-export type SolutionResolvers<ContextType = DataProvider, ParentType extends ResolversParentTypes['Solution'] = ResolversParentTypes['Solution']> = {
-  files?: Resolver<Array<ResolversTypes['ChallengeFile']>, ParentType, ContextType>;
+export type SolutionResolvers<
+  ContextType = DataProvider,
+  ParentType extends
+    ResolversParentTypes['Solution'] = ResolversParentTypes['Solution'],
+> = {
+  files?: Resolver<
+    Array<ResolversTypes['ChallengeFile']>,
+    ParentType,
+    ContextType
+  >;
 };
 
-export type SuperblockResolvers<ContextType = DataProvider, ParentType extends ResolversParentTypes['Superblock'] = ResolversParentTypes['Superblock']> = {
-  blockObjects?: Resolver<Array<ResolversTypes['Block']>, ParentType, ContextType>;
+export type SuperblockResolvers<
+  ContextType = DataProvider,
+  ParentType extends
+    ResolversParentTypes['Superblock'] = ResolversParentTypes['Superblock'],
+> = {
+  blockObjects?: Resolver<
+    Array<ResolversTypes['Block']>,
+    ParentType,
+    ContextType
+  >;
   blocks?: Resolver<Array<ResolversTypes['String']>, ParentType, ContextType>;
   dashedName?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  isCertification?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+  isCertification?: Resolver<
+    ResolversTypes['Boolean'],
+    ParentType,
+    ContextType
+  >;
 };
 
-export type TestResolvers<ContextType = DataProvider, ParentType extends ResolversParentTypes['Test'] = ResolversParentTypes['Test']> = {
+export type TestResolvers<
+  ContextType = DataProvider,
+  ParentType extends
+    ResolversParentTypes['Test'] = ResolversParentTypes['Test'],
+> = {
   testString?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   text?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
 };
@@ -572,4 +807,3 @@ export type Resolvers<ContextType = DataProvider> = {
   Superblock?: SuperblockResolvers<ContextType>;
   Test?: TestResolvers<ContextType>;
 };
-

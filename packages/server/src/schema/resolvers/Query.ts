@@ -74,8 +74,7 @@ export const Query: QueryResolvers = {
   // User Story 4: Certifications
   certifications: (_parent, _args, context) => {
     const curriculum = context.getCurriculum();
-    return curriculum.certifications
-      .map((dashedName) => ({ dashedName }));
+    return curriculum.certifications.map((dashedName) => ({ dashedName }));
   },
 
   // Health monitoring

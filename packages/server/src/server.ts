@@ -31,7 +31,8 @@ export function createGraphQLServer(
   const contextFactory = () => {
     return {
       getCurriculum: () => dataProvider.getCurriculum(),
-      getSuperblock: (dashedName: string) => dataProvider.getSuperblock(dashedName),
+      getSuperblock: (dashedName: string) =>
+        dataProvider.getSuperblock(dashedName),
       getBlock: (dashedName: string) => dataProvider.getBlock(dashedName),
       getChallenge: (id: string) => dataProvider.getChallenge(id),
     };

@@ -20,7 +20,7 @@ import {
 
 // Enum mapping tables
 const BLOCK_LAYOUT_MAPPING: Record<RawBlockLayout, BlockLayout> = {
-  'link': BlockLayout.LINK,
+  link: BlockLayout.LINK,
   'challenge-list': BlockLayout.CHALLENGE_LIST,
   'challenge-grid': BlockLayout.CHALLENGE_GRID,
   'dialogue-grid': BlockLayout.DIALOGUE_GRID,
@@ -31,15 +31,15 @@ const BLOCK_LAYOUT_MAPPING: Record<RawBlockLayout, BlockLayout> = {
 };
 
 const BLOCK_TYPE_MAPPING: Record<RawBlockType, BlockType> = {
-  'lecture': BlockType.LECTURE,
-  'lab': BlockType.LAB,
-  'workshop': BlockType.WORKSHOP,
-  'review': BlockType.REVIEW,
-  'quiz': BlockType.QUIZ,
-  'exam': BlockType.EXAM,
+  lecture: BlockType.LECTURE,
+  lab: BlockType.LAB,
+  workshop: BlockType.WORKSHOP,
+  review: BlockType.REVIEW,
+  quiz: BlockType.QUIZ,
+  exam: BlockType.EXAM,
   'warm-up': BlockType.WARM_UP,
-  'practice': BlockType.PRACTICE,
-  'learn': BlockType.LEARN,
+  practice: BlockType.PRACTICE,
+  learn: BlockType.LEARN,
 };
 
 /**

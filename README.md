@@ -8,6 +8,9 @@ A TypeScript GraphQL API server for freeCodeCamp curriculum metadata, built as a
 # Install dependencies
 pnpm install
 
+# Fetch curriculum data
+pnpm fetch-data
+
 # Start development server (hot reload)
 pnpm develop
 ```

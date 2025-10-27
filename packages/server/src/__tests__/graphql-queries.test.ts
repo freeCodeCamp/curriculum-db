@@ -3,7 +3,21 @@ import { parse } from 'graphql';
 import type { GraphQLExecutor } from './setup.js';
 import { createTestExecutor } from './setup.js';
 import { TEST_QUERIES, KNOWN_TEST_DATA } from './fixtures.js';
-import { expectValidGraphQLResponse, expectNullableField, expectUniqueItems } from './helpers.js';
+import {
+  expectValidGraphQLResponse,
+  expectNullableField,
+  expectUniqueItems,
+} from './helpers.js';
+import type {
+  CurriculumQueryResponse,
+  SuperblockQueryResponse,
+  SuperblocksQueryResponse,
+  BlockQueryResponse,
+  BlocksQueryResponse,
+  ChallengeQueryResponse,
+  ChallengesQueryResponse,
+  CertificationsQueryResponse,
+} from './typed-helpers.js';
 
 let executor: GraphQLExecutor;
 
@@ -14,8 +28,8 @@ beforeAll(async () => {
 describe('GraphQL Query Validation', () => {
   describe('Query: curriculum', () => {
     it('should return curriculum with superblocks and certifications', async () => {
-      const result = await executor.execute({
-        document: TEST_QUERIES.GET_CURRICULUM
+      const result = await executor.execute<CurriculumQueryResponse>({
+        document: TEST_QUERIES.GET_CURRICULUM,
       });
 
       expectValidGraphQLResponse(result);
@@ -30,8 +44,8 @@ describe('GraphQL Query Validation', () => {
     });
 
     it('should return unique superblock and certification names', async () => {
-      const result = await executor.execute({
-        document: TEST_QUERIES.GET_CURRICULUM
+      const result = await executor.execute<CurriculumQueryResponse>({
+        document: TEST_QUERIES.GET_CURRICULUM,
       });
 
       expectValidGraphQLResponse(result);
@@ -49,33 +63,33 @@ describe('GraphQL Query Validation', () => {
 
   describe('Query: superblock(dashedName)', () => {
     it('should return valid superblock data for existing superblock', async () => {
-      const result = await executor.execute({
+      const result = await executor.execute<SuperblockQueryResponse>({
         document: TEST_QUERIES.GET_SUPERBLOCK,
-        variables: { dashedName: KNOWN_TEST_DATA.validSuperblock }
+        variables: { dashedName: KNOWN_TEST_DATA.validSuperblock },
       });
 
       expectValidGraphQLResponse(result);
 
       const superblock = result.data.superblock;
       expect(superblock).toBeDefined();
-      expect(superblock.dashedName).toBe(KNOWN_TEST_DATA.validSuperblock);
-      expect(superblock.blocks).toBeInstanceOf(Array);
-      expect(superblock.blocks.length).toBeGreaterThan(0);
-      expect(typeof superblock.isCertification).toBe('boolean');
+      expect(superblock?.dashedName).toBe(KNOWN_TEST_DATA.validSuperblock);
+      expect(superblock?.blocks).toBeInstanceOf(Array);
+      expect(superblock?.blocks.length).toBeGreaterThan(0);
+      expect(typeof superblock?.isCertification).toBe('boolean');
     });
 
     it('should return blockObjects with valid structure', async () => {
-      const result = await executor.execute({
+      const result = await executor.execute<SuperblockQueryResponse>({
         document: TEST_QUERIES.GET_SUPERBLOCK,
-        variables: { dashedName: KNOWN_TEST_DATA.validSuperblock }
+        variables: { dashedName: KNOWN_TEST_DATA.validSuperblock },
       });
 
       expectValidGraphQLResponse(result);
 
       const superblock = result.data.superblock;
-      expect(superblock.blockObjects).toBeInstanceOf(Array);
+      expect(superblock?.blockObjects).toBeInstanceOf(Array);
 
-      for (const block of superblock.blockObjects) {
+      for (const block of superblock?.blockObjects ?? []) {
         expect(block.dashedName).toBeDefined();
         expect(typeof block.dashedName).toBe('string');
         expect(block.name).toBeDefined();
@@ -84,9 +98,9 @@ describe('GraphQL Query Validation', () => {
     });
 
     it('should return null for non-existent superblock', async () => {
-      const result = await executor.execute({
+      const result = await executor.execute<SuperblockQueryResponse>({
         document: TEST_QUERIES.GET_SUPERBLOCK,
-        variables: { dashedName: KNOWN_TEST_DATA.nonExistentSuperblock }
+        variables: { dashedName: KNOWN_TEST_DATA.nonExistentSuperblock },
       });
 
       expectValidGraphQLResponse(result);
@@ -96,8 +110,8 @@ describe('GraphQL Query Validation', () => {
 
   describe('Query: superblocks', () => {
     it('should return all superblocks with valid data', async () => {
-      const result = await executor.execute({
-        document: TEST_QUERIES.GET_ALL_SUPERBLOCKS
+      const result = await executor.execute<SuperblocksQueryResponse>({
+        document: TEST_QUERIES.GET_ALL_SUPERBLOCKS,
       });
 
       expectValidGraphQLResponse(result);
@@ -114,48 +128,51 @@ describe('GraphQL Query Validation', () => {
     });
 
     it('should return unique superblock dashedNames', async () => {
-      const result = await executor.execute({
-        document: TEST_QUERIES.GET_ALL_SUPERBLOCKS
+      const result = await executor.execute<SuperblocksQueryResponse>({
+        document: TEST_QUERIES.GET_ALL_SUPERBLOCKS,
       });
 
       expectValidGraphQLResponse(result);
 
-      const dashedNames = result.data.superblocks.map((sb: any) => sb.dashedName);
-      expectUniqueItems(dashedNames, 'superblocks should have unique dashedNames');
+      const dashedNames = result.data.superblocks.map((sb) => sb.dashedName);
+      expectUniqueItems(
+        dashedNames,
+        'superblocks should have unique dashedNames'
+      );
     });
   });
 
   describe('Query: block(dashedName)', () => {
     it('should return valid block data for existing block', async () => {
-      const result = await executor.execute({
+      const result = await executor.execute<BlockQueryResponse>({
         document: TEST_QUERIES.GET_BLOCK,
-        variables: { dashedName: KNOWN_TEST_DATA.validBlock }
+        variables: { dashedName: KNOWN_TEST_DATA.validBlock },
       });
 
       expectValidGraphQLResponse(result);
 
       const block = result.data.block;
       expect(block).toBeDefined();
-      expect(block.dashedName).toBe(KNOWN_TEST_DATA.validBlock);
-      expect(block.name).toBeDefined();
-      expect(typeof block.name).toBe('string');
-      expect(block.helpCategory).toBeDefined();
-      expect(block.blockLayout).toBeDefined();
+      expect(block?.dashedName).toBe(KNOWN_TEST_DATA.validBlock);
+      expect(block?.name).toBeDefined();
+      expect(typeof block?.name).toBe('string');
+      expect(block?.helpCategory).toBeDefined();
+      expect(block?.blockLayout).toBeDefined();
     });
 
     it('should return challengeOrder with valid structure', async () => {
-      const result = await executor.execute({
+      const result = await executor.execute<BlockQueryResponse>({
         document: TEST_QUERIES.GET_BLOCK,
-        variables: { dashedName: KNOWN_TEST_DATA.validBlock }
+        variables: { dashedName: KNOWN_TEST_DATA.validBlock },
       });
 
       expectValidGraphQLResponse(result);
 
       const block = result.data.block;
-      expect(block.challengeOrder).toBeInstanceOf(Array);
-      expect(block.challengeOrder.length).toBeGreaterThan(0);
+      expect(block?.challengeOrder).toBeInstanceOf(Array);
+      expect(block?.challengeOrder.length).toBeGreaterThan(0);
 
-      for (const challenge of block.challengeOrder) {
+      for (const challenge of block?.challengeOrder ?? []) {
         expect(challenge.id).toBeDefined();
         expect(typeof challenge.id).toBe('string');
         expect(challenge.title).toBeDefined();
@@ -164,9 +181,9 @@ describe('GraphQL Query Validation', () => {
     });
 
     it('should return null for non-existent block', async () => {
-      const result = await executor.execute({
+      const result = await executor.execute<BlockQueryResponse>({
         document: TEST_QUERIES.GET_BLOCK,
-        variables: { dashedName: KNOWN_TEST_DATA.nonExistentBlock }
+        variables: { dashedName: KNOWN_TEST_DATA.nonExistentBlock },
       });
 
       expectValidGraphQLResponse(result);
@@ -174,9 +191,9 @@ describe('GraphQL Query Validation', () => {
     });
 
     it('should handle nullable fields correctly', async () => {
-      const result = await executor.execute({
+      const result = await executor.execute<BlockQueryResponse>({
         document: TEST_QUERIES.GET_BLOCK,
-        variables: { dashedName: KNOWN_TEST_DATA.validBlock }
+        variables: { dashedName: KNOWN_TEST_DATA.validBlock },
       });
 
       expectValidGraphQLResponse(result);
@@ -184,17 +201,17 @@ describe('GraphQL Query Validation', () => {
       const block = result.data.block;
 
       // blockType is nullable
-      expectNullableField(block.blockType);
+      expectNullableField(block?.blockType);
 
       // isUpcomingChange is nullable
-      expectNullableField(block.isUpcomingChange);
+      expectNullableField(block?.isUpcomingChange);
     });
   });
 
   describe('Query: blocks(superblockDashedName)', () => {
     it('should return all blocks when no filter provided', async () => {
-      const result = await executor.execute({
-        document: TEST_QUERIES.GET_BLOCKS
+      const result = await executor.execute<BlocksQueryResponse>({
+        document: TEST_QUERIES.GET_BLOCKS,
       });
 
       expectValidGraphQLResponse(result);
@@ -211,9 +228,9 @@ describe('GraphQL Query Validation', () => {
     });
 
     it('should filter blocks by superblock when provided', async () => {
-      const result = await executor.execute({
+      const result = await executor.execute<BlocksQueryResponse>({
         document: TEST_QUERIES.GET_BLOCKS,
-        variables: { superblockDashedName: KNOWN_TEST_DATA.validSuperblock }
+        variables: { superblockDashedName: KNOWN_TEST_DATA.validSuperblock },
       });
 
       expectValidGraphQLResponse(result);
@@ -229,9 +246,11 @@ describe('GraphQL Query Validation', () => {
     });
 
     it('should return empty array for non-existent superblock', async () => {
-      const result = await executor.execute({
+      const result = await executor.execute<BlocksQueryResponse>({
         document: TEST_QUERIES.GET_BLOCKS,
-        variables: { superblockDashedName: KNOWN_TEST_DATA.nonExistentSuperblock }
+        variables: {
+          superblockDashedName: KNOWN_TEST_DATA.nonExistentSuperblock,
+        },
       });
 
       expectValidGraphQLResponse(result);
@@ -239,13 +258,13 @@ describe('GraphQL Query Validation', () => {
     });
 
     it('should return unique block dashedNames', async () => {
-      const result = await executor.execute({
-        document: TEST_QUERIES.GET_BLOCKS
+      const result = await executor.execute<BlocksQueryResponse>({
+        document: TEST_QUERIES.GET_BLOCKS,
       });
 
       expectValidGraphQLResponse(result);
 
-      const dashedNames = result.data.blocks.map((b: any) => b.dashedName);
+      const dashedNames = result.data.blocks.map((b) => b.dashedName);
       expectUniqueItems(dashedNames, 'blocks should have unique dashedNames');
     });
   });
@@ -253,33 +272,33 @@ describe('GraphQL Query Validation', () => {
   describe('Query: challenge(id)', () => {
     it('should return valid challenge data for existing challenge', async () => {
       // First get a valid challenge ID
-      const blocksResult = await executor.execute({
+      const blocksResult = await executor.execute<BlockQueryResponse>({
         document: TEST_QUERIES.GET_BLOCK,
-        variables: { dashedName: KNOWN_TEST_DATA.validBlock }
+        variables: { dashedName: KNOWN_TEST_DATA.validBlock },
       });
 
       expectValidGraphQLResponse(blocksResult);
-      const challengeId = blocksResult.data.block.challengeOrder[0].id;
+      const challengeId = blocksResult.data.block?.challengeOrder?.[0]?.id;
 
       // Now query for that specific challenge
-      const result = await executor.execute({
+      const result = await executor.execute<ChallengeQueryResponse>({
         document: TEST_QUERIES.GET_CHALLENGE,
-        variables: { id: challengeId }
+        variables: { id: challengeId },
       });
 
       expectValidGraphQLResponse(result);
 
       const challenge = result.data.challenge;
       expect(challenge).toBeDefined();
-      expect(challenge.id).toBe(challengeId);
-      expect(challenge.title).toBeDefined();
-      expect(typeof challenge.title).toBe('string');
+      expect(challenge?.id).toBe(challengeId);
+      expect(challenge?.title).toBeDefined();
+      expect(typeof challenge?.title).toBe('string');
     });
 
     it('should return null for non-existent challenge', async () => {
-      const result = await executor.execute({
+      const result = await executor.execute<ChallengeQueryResponse>({
         document: TEST_QUERIES.GET_CHALLENGE,
-        variables: { id: KNOWN_TEST_DATA.nonExistentChallengeId }
+        variables: { id: KNOWN_TEST_DATA.nonExistentChallengeId },
       });
 
       expectValidGraphQLResponse(result);
@@ -288,34 +307,34 @@ describe('GraphQL Query Validation', () => {
 
     it('should return block relationship', async () => {
       // First get a valid challenge ID
-      const blocksResult = await executor.execute({
+      const blocksResult = await executor.execute<BlockQueryResponse>({
         document: TEST_QUERIES.GET_BLOCK,
-        variables: { dashedName: KNOWN_TEST_DATA.validBlock }
+        variables: { dashedName: KNOWN_TEST_DATA.validBlock },
       });
 
       expectValidGraphQLResponse(blocksResult);
-      const challengeId = blocksResult.data.block.challengeOrder[0].id;
+      const challengeId = blocksResult.data.block?.challengeOrder?.[0]?.id;
 
       // Now query for that challenge
-      const result = await executor.execute({
+      const result = await executor.execute<ChallengeQueryResponse>({
         document: TEST_QUERIES.GET_CHALLENGE,
-        variables: { id: challengeId }
+        variables: { id: challengeId },
       });
 
       expectValidGraphQLResponse(result);
 
       const challenge = result.data.challenge;
-      expect(challenge.block).toBeDefined();
-      expect(challenge.block.dashedName).toBeDefined();
-      expect(typeof challenge.block.dashedName).toBe('string');
-      expect(challenge.block.name).toBeDefined();
+      expect(challenge?.block).toBeDefined();
+      expect(challenge?.block.dashedName).toBeDefined();
+      expect(typeof challenge?.block.dashedName).toBe('string');
+      expect(challenge?.block.name).toBeDefined();
     });
   });
 
   describe('Query: challenges(blockDashedName)', () => {
     it('should return all challenges when no filter provided', async () => {
-      const result = await executor.execute({
-        document: TEST_QUERIES.GET_CHALLENGES
+      const result = await executor.execute<ChallengesQueryResponse>({
+        document: TEST_QUERIES.GET_CHALLENGES,
       });
 
       expectValidGraphQLResponse(result);
@@ -332,9 +351,9 @@ describe('GraphQL Query Validation', () => {
     });
 
     it('should filter challenges by block when provided', async () => {
-      const result = await executor.execute({
+      const result = await executor.execute<ChallengesQueryResponse>({
         document: TEST_QUERIES.GET_CHALLENGES,
-        variables: { blockDashedName: KNOWN_TEST_DATA.validBlock }
+        variables: { blockDashedName: KNOWN_TEST_DATA.validBlock },
       });
 
       expectValidGraphQLResponse(result);
@@ -349,9 +368,9 @@ describe('GraphQL Query Validation', () => {
     });
 
     it('should return empty array for non-existent block', async () => {
-      const result = await executor.execute({
+      const result = await executor.execute<ChallengesQueryResponse>({
         document: TEST_QUERIES.GET_CHALLENGES,
-        variables: { blockDashedName: KNOWN_TEST_DATA.nonExistentBlock }
+        variables: { blockDashedName: KNOWN_TEST_DATA.nonExistentBlock },
       });
 
       expectValidGraphQLResponse(result);
@@ -359,28 +378,28 @@ describe('GraphQL Query Validation', () => {
     });
 
     it('should return unique challenge IDs', async () => {
-      const result = await executor.execute({
+      const result = await executor.execute<ChallengesQueryResponse>({
         document: TEST_QUERIES.GET_CHALLENGES,
-        variables: { blockDashedName: KNOWN_TEST_DATA.validBlock }
+        variables: { blockDashedName: KNOWN_TEST_DATA.validBlock },
       });
 
       expectValidGraphQLResponse(result);
 
-      const ids = result.data.challenges.map((c: any) => c.id);
+      const ids = result.data.challenges.map((c) => c.id);
       expectUniqueItems(ids, 'challenges should have unique IDs');
     });
   });
 
   describe('Query: certifications', () => {
     it('should return all certifications with valid data', async () => {
-      const result = await executor.execute({
+      const result = await executor.execute<CertificationsQueryResponse>({
         document: parse(`
           query GetCertifications {
             certifications {
               dashedName
             }
           }
-        `)
+        `),
       });
 
       expectValidGraphQLResponse(result);
@@ -396,27 +415,27 @@ describe('GraphQL Query Validation', () => {
 
     it('should return valid certifications that match existing superblocks', async () => {
       // Get all certifications
-      const certResult = await executor.execute({
+      const certResult = await executor.execute<CertificationsQueryResponse>({
         document: parse(`
           query GetCertifications {
             certifications {
               dashedName
             }
           }
-        `)
+        `),
       });
 
       expectValidGraphQLResponse(certResult);
 
       // Get all loaded superblocks
-      const sbResult = await executor.execute({
-        document: TEST_QUERIES.GET_ALL_SUPERBLOCKS
+      const sbResult = await executor.execute<SuperblocksQueryResponse>({
+        document: TEST_QUERIES.GET_ALL_SUPERBLOCKS,
       });
 
       expectValidGraphQLResponse(sbResult);
 
       const loadedSuperblocks = new Set(
-        sbResult.data.superblocks.map((sb: any) => sb.dashedName)
+        sbResult.data.superblocks.map((sb) => sb.dashedName)
       );
 
       // Count how many certifications have loaded superblocks
@@ -427,9 +446,9 @@ describe('GraphQL Query Validation', () => {
 
           // Verify the superblock is marked as a certification
           const sb = sbResult.data.superblocks.find(
-            (s: any) => s.dashedName === cert.dashedName
+            (s) => s.dashedName === cert.dashedName
           );
-          expect(sb.isCertification).toBe(true);
+          expect(sb?.isCertification).toBe(true);
         }
       }
 
@@ -438,20 +457,23 @@ describe('GraphQL Query Validation', () => {
     });
 
     it('should return unique certification dashedNames', async () => {
-      const result = await executor.execute({
+      const result = await executor.execute<CertificationsQueryResponse>({
         document: parse(`
           query GetCertifications {
             certifications {
               dashedName
             }
           }
-        `)
+        `),
       });
 
       expectValidGraphQLResponse(result);
 
-      const dashedNames = result.data.certifications.map((c: any) => c.dashedName);
-      expectUniqueItems(dashedNames, 'certifications should have unique dashedNames');
+      const dashedNames = result.data.certifications.map((c) => c.dashedName);
+      expectUniqueItems(
+        dashedNames,
+        'certifications should have unique dashedNames'
+      );
     });
   });
 });

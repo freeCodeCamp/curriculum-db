@@ -1,0 +1,87 @@
+version: '3.8'
+
+services:
+  curriculum-api:
+    image: freecodecamp/curriculum-db:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "4000:4000"
+    environment:
+      - NODE_ENV=production
+      - PORT=4000
+      - CORS_ORIGIN=${CORS_ORIGIN:-*}
+      - DATA_PATH=/app/data/structure
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:4000/graphql?query={__typename}', (r) => process.exit(r.statusCode === 200 ? 0 : 1))"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
+    deploy:
+      mode: replicated
+      replicas: 2
+      update_config:
+        parallelism: 1
+        delay: 10s
+        order: start-first
+        failure_action: rollback
+      rollback_config:
+        parallelism: 1
+        delay: 5s
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 120s
+      resources:
+        limits:
+          cpus: '1'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 128M
+      labels:
+        - "com.freecodecamp.service=curriculum-api"
+        - "com.freecodecamp.version=1.0.0"
+    networks:
+      - curriculum-network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+networks:
+  curriculum-network:
+    driver: overlay
+    attachable: true
+
+# Usage for Docker Swarm:
+#
+# 1. Build and push image:
+#    docker build -t freecodecamp/curriculum-db:latest .
+#    docker push freecodecamp/curriculum-db:latest
+#
+# 2. Deploy to swarm:
+#    docker stack deploy -c docker-compose.yml curriculum
+#
+# 3. Check service status:
+#    docker service ls
+#    docker service ps curriculum_curriculum-api
+#
+# 4. Scale service:
+#    docker service scale curriculum_curriculum-api=3
+#
+# 5. Update service:
+#    docker service update --image freecodecamp/curriculum-db:v2 curriculum_curriculum-api
+#
+# 6. Remove stack:
+#    docker stack rm curriculum
+#
+# Environment Variables:
+#   CORS_ORIGIN - Set to your frontend domain(s) in production
+#               Example: https://www.freecodecamp.org
+#               Multiple: https://app1.com,https://app2.com
