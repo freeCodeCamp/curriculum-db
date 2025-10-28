@@ -41,8 +41,8 @@ COPY --chown=node:node packages/server/package.json packages/server/
 # Install pnpm globally
 RUN npm i -g pnpm@10
 
-# Install only production dependencies
-RUN pnpm install --prod --frozen-lockfile
+# Install only production dependencies (skip prepare scripts like husky)
+RUN pnpm install --prod --frozen-lockfile --ignore-scripts
 
 # Stage 3: Production Runtime
 FROM node:22-bookworm

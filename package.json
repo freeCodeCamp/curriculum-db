@@ -35,6 +35,7 @@
     "@types/node": "^24.9.1",
     "@vitest/coverage-v8": "^4.0.4",
     "@vitest/ui": "^4.0.4",
+    "giget": "^2.0.0",
     "husky": "^9.1.7",
     "lint-staged": "^16.2.6",
     "oxlint": "^1.24.0",
@@ -43,9 +44,6 @@
     "turbo": "^2.5.8",
     "typescript": "^5.9.3",
     "vitest": "^4.0.4"
-  },
-  "dependencies": {
-    "giget": "^2.0.0"
   },
   "lint-staged": {
     "*.{ts,tsx,js,jsx,mjs,cjs}": [
