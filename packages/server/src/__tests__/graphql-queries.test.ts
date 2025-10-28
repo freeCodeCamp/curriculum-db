@@ -475,5 +475,27 @@ describe('GraphQL Query Validation', () => {
         'certifications should have unique dashedNames'
       );
     });
+
+    it('should resolve superblock field for all certifications', async () => {
+      const result = await executor.execute<CertificationsQueryResponse>({
+        document: TEST_QUERIES.GET_CERTIFICATIONS,
+      });
+
+      expectValidGraphQLResponse(result);
+
+      expect(result.data.certifications).toBeInstanceOf(Array);
+      expect(result.data.certifications.length).toBeGreaterThan(0);
+
+      for (const cert of result.data.certifications) {
+        expect(cert.dashedName).toBeDefined();
+        expect(typeof cert.dashedName).toBe('string');
+
+        // Verify superblock field is resolved correctly
+        expect(cert.superblock).toBeDefined();
+        expect(cert.superblock.dashedName).toBe(cert.dashedName);
+        expect(cert.superblock.isCertification).toBe(true);
+        expect(cert.superblock.blocks).toBeInstanceOf(Array);
+      }
+    });
   });
 });
