@@ -23,7 +23,7 @@ COPY --chown=node:node scripts/ scripts/
 # Install all dependencies (including dev dependencies for build)
 RUN pnpm install --frozen-lockfile
 
-# Fetch curriculum data using git sparse-checkout
+# Fetch curriculum data using giget
 RUN node scripts/fetch-curriculum-data.mjs
 
 # Build the TypeScript project

@@ -18,7 +18,9 @@
     "test:ui": "turbo run test:ui",
     "test:coverage": "turbo run test:coverage",
     "fetch-data": "node scripts/fetch-curriculum-data.mjs",
-    "start": "node packages/server/dist/index.js"
+    "start": "node packages/server/dist/index.js",
+    "prepare": "husky",
+    "pre-push": "pnpm lint && pnpm format:check && pnpm type-check && pnpm test"
   },
   "keywords": [
     "freecodecamp",
@@ -30,14 +32,28 @@
   "license": "BSD-3-Clause",
   "packageManager": "pnpm@10.19.0",
   "devDependencies": {
-  "@types/node": "^24.8.1",
-  "@vitest/coverage-v8": "^3.2.4",
-  "@vitest/ui": "^3.2.4",
-    "oxlint": "^0.18.0",
-    "prettier": "^3.3.3",
-    "tsx": "^4.19.2",
+    "@types/node": "^24.9.1",
+    "@vitest/coverage-v8": "^4.0.4",
+    "@vitest/ui": "^4.0.4",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.2.6",
+    "oxlint": "^1.24.0",
+    "prettier": "^3.6.2",
+    "tsx": "^4.20.6",
     "turbo": "^2.5.8",
-    "typescript": "^5.7.2",
-    "vitest": "^3.2.4"
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.4"
+  },
+  "dependencies": {
+    "giget": "^2.0.0"
+  },
+  "lint-staged": {
+    "*.{ts,tsx,js,jsx,mjs,cjs}": [
+      "oxlint",
+      "prettier --write"
+    ],
+    "*.{json,md,yml,yaml}": [
+      "prettier --write"
+    ]
   }
 }
