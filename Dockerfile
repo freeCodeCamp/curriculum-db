@@ -2,7 +2,7 @@
 # Follows freeCodeCamp's main repository build patterns
 
 # Stage 1: Builder - Build TypeScript and fetch curriculum data
-FROM node:22-bookworm AS builder
+FROM node:24-bookworm AS builder
 
 # Install dependencies needed for build
 RUN apt-get update && apt-get install -y git
@@ -30,7 +30,7 @@ RUN node scripts/fetch-curriculum-data.mjs
 RUN pnpm build
 
 # Stage 2: Production Dependencies
-FROM node:22-bookworm AS deps
+FROM node:24-bookworm AS deps
 
 WORKDIR /home/node/build
 
@@ -45,7 +45,7 @@ RUN npm i -g pnpm@10
 RUN pnpm install --prod --frozen-lockfile --ignore-scripts
 
 # Stage 3: Production Runtime
-FROM node:22-bookworm
+FROM node:24-bookworm
 
 # Use the node user for production
 USER node
