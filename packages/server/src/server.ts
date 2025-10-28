@@ -6,6 +6,7 @@ import {
 } from 'node:http';
 import type { DataProvider } from './data/types.js';
 import { loadSchemaFile } from './schema/load-schema.js';
+import { isReady } from './readiness.js';
 import { resolvers } from './schema/resolvers/index.js';
 
 export interface ServerConfig {
@@ -84,8 +85,28 @@ query GetSuperblockStructure {
     },
   });
 
-  // Landing page handler
+  // Health check handlers
   const requestHandler = (req: IncomingMessage, res: ServerResponse) => {
+    // Liveness probe - simple health check
+    if (req.url === '/health' && req.method === 'GET') {
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ status: 'ok' }));
+      return;
+    }
+
+    // Readiness probe - checks if data is loaded and ready to serve traffic
+    if (req.url === '/ready' && req.method === 'GET') {
+      if (isReady()) {
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ status: 'ready' }));
+      } else {
+        res.writeHead(503, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ status: 'not ready' }));
+      }
+      return;
+    }
+
+    // Landing page
     if (req.url === '/' && req.method === 'GET') {
       res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
       res.end(`<!DOCTYPE html>
@@ -115,7 +136,7 @@ query GetSuperblockStructure {
       box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
     }
     h1 {
-      font-size: 2.5rem;
+      font-size: 2rem;
       margin-bottom: 1rem;
       background: linear-gradient(90deg, #fff, #aaa);
       -webkit-background-clip: text;
@@ -219,7 +240,6 @@ query {
   }
   superblock(dashedName: "responsive-web-design") {
     blocks
-    title
   }
 }</pre>
       </div>
