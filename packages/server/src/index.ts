@@ -2,6 +2,7 @@ import { existsSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { initializeDataStore } from './data/index.js';
 import { InMemoryDataProvider } from './data/provider.js';
+import { setReady } from './readiness.js';
 import { createGraphQLServer } from './server.js';
 import { setStartTime } from './uptime.js';
 
@@ -51,8 +52,9 @@ async function main() {
   const dataStore = result.data;
   const dataProvider = new InMemoryDataProvider(dataStore);
 
-  // Mark server as ready (start uptime tracking)
+  // Mark server as ready (start uptime tracking and set readiness state)
   setStartTime(Date.now());
+  setReady(true);
 
   // Create and start server
   const server = createGraphQLServer(dataProvider, {

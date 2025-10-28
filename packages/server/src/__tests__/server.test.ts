@@ -3,6 +3,7 @@ import type { GraphQLServer } from '../server.js';
 import { createGraphQLServer } from '../server.js';
 import { getTestDataStore } from './setup.js';
 import { InMemoryDataProvider } from '../data/provider.js';
+import { setReady } from '../readiness.js';
 
 describe('Server Creation and Configuration', () => {
   let server: GraphQLServer;
@@ -183,6 +184,109 @@ describe('Server Creation and Configuration', () => {
       const data = await response.json();
       expect(data.errors).toBeDefined();
       expect(data.errors.length).toBeGreaterThan(0);
+    });
+  });
+
+  describe('Health Check Endpoints', () => {
+    beforeAll(async () => {
+      // Set readiness state for this test suite
+      setReady(true);
+
+      server = createGraphQLServer(dataProvider, {
+        port: 4010,
+        corsOrigin: '*',
+      });
+
+      await server.start();
+    });
+
+    describe('/health endpoint', () => {
+      it('should return 200 OK for liveness probe', async () => {
+        const response = await fetch('http://localhost:4010/health');
+        expect(response.status).toBe(200);
+        expect(response.headers.get('content-type')).toContain(
+          'application/json'
+        );
+
+        const data = await response.json();
+        expect(data).toEqual({ status: 'ok' });
+      });
+
+      it('should respond with JSON status', async () => {
+        const response = await fetch('http://localhost:4010/health');
+        const data = await response.json();
+
+        expect(data).toHaveProperty('status');
+        expect(data.status).toBe('ok');
+      });
+
+      it('should be accessible from any origin', async () => {
+        const response = await fetch('http://localhost:4010/health', {
+          headers: {
+            Origin: 'https://example.com',
+          },
+        });
+        expect(response.status).toBe(200);
+      });
+    });
+
+    describe('/ready endpoint', () => {
+      it('should return 200 when server is ready', async () => {
+        const response = await fetch('http://localhost:4010/ready');
+        expect(response.status).toBe(200);
+        expect(response.headers.get('content-type')).toContain(
+          'application/json'
+        );
+
+        const data = await response.json();
+        expect(data).toEqual({ status: 'ready' });
+      });
+
+      it('should respond with JSON status when ready', async () => {
+        const response = await fetch('http://localhost:4010/ready');
+        const data = await response.json();
+
+        expect(data).toHaveProperty('status');
+        expect(data.status).toBe('ready');
+      });
+
+      it('should be accessible from any origin', async () => {
+        const response = await fetch('http://localhost:4010/ready', {
+          headers: {
+            Origin: 'https://example.com',
+          },
+        });
+        expect(response.status).toBe(200);
+      });
+
+      it('should return 503 when server is not ready', async () => {
+        // Temporarily set readiness to false
+        setReady(false);
+
+        const response = await fetch('http://localhost:4010/ready');
+        expect(response.status).toBe(503);
+        expect(response.headers.get('content-type')).toContain(
+          'application/json'
+        );
+
+        const data = await response.json();
+        expect(data).toEqual({ status: 'not ready' });
+
+        // Restore ready state for other tests
+        setReady(true);
+      });
+
+      it('should transition from not ready to ready', async () => {
+        // Set not ready
+        setReady(false);
+        let response = await fetch('http://localhost:4010/ready');
+        expect(response.status).toBe(503);
+
+        // Set ready
+        setReady(true);
+        response = await fetch('http://localhost:4010/ready');
+        expect(response.status).toBe(200);
+      });
     });
   });
 
