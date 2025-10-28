@@ -122,13 +122,6 @@ jobs:
           pnpm fetch-data
           pnpm build
 
-      - name: Upload build artifacts
-        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5
-        with:
-          name: dist
-          path: packages/server/dist
-          retention-days: 7
-
   test-coverage:
     name: Test Coverage
     needs: [lint, test]
