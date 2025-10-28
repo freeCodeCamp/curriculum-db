@@ -1,3 +1,5 @@
+import { existsSync } from 'node:fs';
+import { resolve } from 'node:path';
 import { initializeDataStore } from './data/index.js';
 import { InMemoryDataProvider } from './data/provider.js';
 import { createGraphQLServer } from './server.js';
@@ -8,21 +10,23 @@ async function main() {
 
   // Load configuration from environment
   const PORT = parseInt(process.env.PORT ?? '4000', 10);
-  const DATA_PATH = process.env.DATA_PATH ?? '../../data/structure';
-  const CORS_ORIGIN =
-    process.env.NODE_ENV === 'production'
-      ? (process.env.CORS_ORIGIN ?? '*')
-      : '*';
+
+  // Resolve data path - works from both root and packages/server
+  let DATA_PATH = process.env.DATA_PATH;
+  if (!DATA_PATH) {
+    const rootPath = resolve(process.cwd(), 'data/structure');
+    const serverPath = resolve(process.cwd(), '../../data/structure');
+    DATA_PATH = existsSync(rootPath) ? rootPath : serverPath;
+  } else {
+    DATA_PATH = resolve(process.cwd(), DATA_PATH);
+  }
+
+  const CORS_ORIGIN = process.env.CORS_ORIGIN ?? '*';
 
   // Validate configuration
   if (!Number.isInteger(PORT) || PORT < 1 || PORT > 65535) {
     console.error(`Error: Invalid PORT value: ${process.env.PORT}`);
     console.error('PORT must be an integer between 1 and 65535');
-    process.exit(1);
-  }
-
-  if (process.env.NODE_ENV === 'production' && CORS_ORIGIN === '*') {
-    console.error('Error: CORS_ORIGIN must be explicitly set in production');
     process.exit(1);
   }
 
