@@ -6,11 +6,12 @@ on:
       site_tld:
         required: false
         type: choice
-        description: "Input: The site tld (variant) to build (leave empty to build both)"
+        description: "Input: The site tld (variant) to build"
         options:
+          - both
           - dev
           - org
-        default: ""
+        default: "both"
   workflow_call:
     inputs:
       site_tld:
@@ -30,7 +31,7 @@ jobs:
       contents: read
     strategy:
       matrix:
-        site_tld: ${{ inputs.site_tld && fromJSON(format('["{0}"]', inputs.site_tld)) || fromJSON('["dev", "org"]') }}
+        site_tld: ${{ (inputs.site_tld == 'both' || inputs.site_tld == '') && fromJSON('["dev", "org"]') || fromJSON(format('["{0}"]', inputs.site_tld)) }}
     outputs:
       tagname: ${{ steps.tagname.outputs.tagname }}
 

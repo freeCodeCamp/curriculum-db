@@ -6,10 +6,6 @@ settings:
 
 importers:
   .:
-    dependencies:
-      giget:
-        specifier: ^2.0.0
-        version: 2.0.0
     devDependencies:
       "@types/node":
         specifier: ^24.9.1
@@ -20,6 +16,9 @@ importers:
       "@vitest/ui":
         specifier: ^4.0.4
         version: 4.0.4(vitest@4.0.4)
+      giget:
+        specifier: ^2.0.0
+        version: 2.0.0
       husky:
         specifier: ^9.1.7
         version: 9.1.7

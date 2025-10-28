@@ -16,7 +16,7 @@
 # --- Owned by none (negate rule above) ---
 
 package.json
-package-lock.json
+pnpm-lock.yaml
 
 # -------------------------------------------------
 # All files in the root are owned by dev team
@@ -27,4 +27,4 @@ package-lock.json
 # --- Owned by none (negate rule above) ---
 
 /package.json
-/package-lock.json
+/pnpm-lock.yaml

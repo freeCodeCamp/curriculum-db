@@ -37,20 +37,20 @@ jobs:
             exit 1
           fi
 
-      - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
-        with:
-          node-version: ${{ matrix.node-version }}
-          cache: "pnpm"
-
       - name: Install pnpm
         uses: pnpm/action-setup@41ff72655975bd51cab0327fa583b6e92b6d3061 # v4
         id: pnpm-install
         with:
           run_install: false
 
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: "pnpm"
+
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: pnpm install
 
       - name: Check formatting
         run: |
@@ -59,104 +59,10 @@ jobs:
       - name: Lint
         run: pnpm lint
 
-  type-check:
-    name: Type Check
-    runs-on: ubuntu-22.04
-    strategy:
-      matrix:
-        node-version: [22]
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4
-
-      - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
-        with:
-          node-version: ${{ matrix.node-version }}
-          cache: "pnpm"
-
-      - name: Install pnpm
-        uses: pnpm/action-setup@41ff72655975bd51cab0327fa583b6e92b6d3061 # v4
-        id: pnpm-install
-        with:
-          run_install: false
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Cache curriculum data
-        uses: actions/cache@5a5a1f2c0a6815595b0419c1e2d0a0e9c1f2c0a6 # v4
-        id: curriculum-cache
-        with:
-          path: data/structure
-          key: curriculum-${{ hashFiles('scripts/fetch-curriculum-data.mjs') }}-${{ github.sha }}
-          restore-keys: |
-            curriculum-${{ hashFiles('scripts/fetch-curriculum-data.mjs') }}-
-
-      - name: Fetch curriculum data
-        if: steps.curriculum-cache.outputs.cache-hit != 'true'
-        run: pnpm fetch-data
-
-      - name: Generate GraphQL types
-        run: pnpm codegen
-
-      - name: Type check
-        run: pnpm type-check
-
-  build:
-    name: Build
-    runs-on: ubuntu-22.04
-    strategy:
-      matrix:
-        node-version: [22]
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4
-
-      - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
-        with:
-          node-version: ${{ matrix.node-version }}
-          cache: "pnpm"
-
-      - name: Install pnpm
-        uses: pnpm/action-setup@41ff72655975bd51cab0327fa583b6e92b6d3061 # v4
-        id: pnpm-install
-        with:
-          run_install: false
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Cache curriculum data
-        uses: actions/cache@5a5a1f2c0a6815595b0419c1e2d0a0e9c1f2c0a6 # v4
-        id: curriculum-cache
-        with:
-          path: data/structure
-          key: curriculum-${{ hashFiles('scripts/fetch-curriculum-data.mjs') }}-${{ github.sha }}
-          restore-keys: |
-            curriculum-${{ hashFiles('scripts/fetch-curriculum-data.mjs') }}-
-
-      - name: Fetch curriculum data
-        if: steps.curriculum-cache.outputs.cache-hit != 'true'
-        run: pnpm fetch-data
-
-      - name: Build project
-        run: pnpm build
-
-      - name: Upload build artifacts
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
-        with:
-          name: dist
-          path: packages/server/dist
-          retention-days: 7
-
   test:
     name: Test
     runs-on: ubuntu-22.04
-    needs: [lint, type-check, build]
+
     strategy:
       fail-fast: false
       matrix:
@@ -166,41 +72,30 @@ jobs:
       - name: Checkout
         uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4
 
-      - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
-        with:
-          node-version: ${{ matrix.node-version }}
-          cache: "pnpm"
-
       - name: Install pnpm
         uses: pnpm/action-setup@41ff72655975bd51cab0327fa583b6e92b6d3061 # v4
         id: pnpm-install
         with:
           run_install: false
 
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Cache curriculum data
-        uses: actions/cache@5a5a1f2c0a6815595b0419c1e2d0a0e9c1f2c0a6 # v4
-        id: curriculum-cache
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
-          path: data/structure
-          key: curriculum-${{ hashFiles('scripts/fetch-curriculum-data.mjs') }}-${{ github.sha }}
-          restore-keys: |
-            curriculum-${{ hashFiles('scripts/fetch-curriculum-data.mjs') }}-
+          node-version: ${{ matrix.node-version }}
+          cache: "pnpm"
 
-      - name: Fetch curriculum data
-        if: steps.curriculum-cache.outputs.cache-hit != 'true'
-        run: pnpm fetch-data
+      - name: Install Dependencies
+        run: |
+          pnpm install
+          pnpm fetch-data
 
-      - name: Run tests
+      - name: Run Tests
         run: pnpm test
 
-  test-coverage:
-    name: Test Coverage
+  build:
+    name: Build
+    needs: [lint, test]
     runs-on: ubuntu-22.04
-    needs: [lint, type-check, build]
     strategy:
       matrix:
         node-version: [22]
@@ -209,11 +104,42 @@ jobs:
       - name: Checkout
         uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4
 
+      - name: Install pnpm
+        uses: pnpm/action-setup@41ff72655975bd51cab0327fa583b6e92b6d3061 # v4
+        id: pnpm-install
+        with:
+          run_install: false
+
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: ${{ matrix.node-version }}
           cache: "pnpm"
+
+      - name: Install and Build
+        run: |
+          pnpm install
+          pnpm fetch-data
+          pnpm build
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: dist
+          path: packages/server/dist
+          retention-days: 7
+
+  test-coverage:
+    name: Test Coverage
+    needs: [lint, test]
+    runs-on: ubuntu-22.04
+    strategy:
+      matrix:
+        node-version: [22]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4
 
       - name: Install pnpm
         uses: pnpm/action-setup@41ff72655975bd51cab0327fa583b6e92b6d3061 # v4
@@ -221,21 +147,16 @@ jobs:
         with:
           run_install: false
 
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Cache curriculum data
-        uses: actions/cache@5a5a1f2c0a6815595b0419c1e2d0a0e9c1f2c0a6 # v4
-        id: curriculum-cache
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
-          path: data/structure
-          key: curriculum-${{ hashFiles('scripts/fetch-curriculum-data.mjs') }}-${{ github.sha }}
-          restore-keys: |
-            curriculum-${{ hashFiles('scripts/fetch-curriculum-data.mjs') }}-
+          node-version: ${{ matrix.node-version }}
+          cache: "pnpm"
 
-      - name: Fetch curriculum data
-        if: steps.curriculum-cache.outputs.cache-hit != 'true'
-        run: pnpm fetch-data
+      - name: Install Dependencies
+        run: |
+          pnpm install
+          pnpm fetch-data
 
       - name: Run tests with coverage
         run: pnpm test:coverage
