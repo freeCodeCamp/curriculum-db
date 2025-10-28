@@ -90,6 +90,7 @@ async function main() {
       Math.round((process.memoryUsage().heapUsed / 1024 / 1024) * 100) / 100;
 
     console.log(`\n✓ Server started successfully on port ${PORT}`);
+    console.log(`  Landing page: http://localhost:${PORT}/`);
     console.log(`  GraphQL endpoint: http://localhost:${PORT}/graphql`);
     console.log(`\n  Loaded curriculum data:`);
     console.log(`  - ${superblockCount} superblocks`);

@@ -143,6 +143,19 @@ query GetSuperblockStructure {
       -webkit-text-fill-color: transparent;
       background-clip: text;
     }
+    .badge {
+      display: inline-block;
+      background: linear-gradient(135deg, #ff6b6b, #ee5a6f);
+      color: #fff;
+      padding: 0.4rem 0.8rem;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      margin-bottom: 1rem;
+      box-shadow: 0 2px 8px rgba(255, 107, 107, 0.3);
+    }
     .subtitle {
       font-size: 1.2rem;
       color: #aaa;
@@ -212,6 +225,7 @@ query GetSuperblockStructure {
 </head>
 <body>
   <div class="container">
+    <div class="badge">Early Alpha</div>
     <h1>freeCodeCamp Curriculum GraphQL API</h1>
     <p class="subtitle">Access curriculum metadata for superblocks, blocks, and challenges</p>
 
@@ -226,6 +240,11 @@ query GetSuperblockStructure {
         <h3>GraphQL Endpoint</h3>
         <p>Send POST requests to <span class="code">/graphql</span></p>
         <a href="/graphql" target="_blank">View Endpoint →</a>
+      </div>
+      <div class="link-card">
+        <h3>GitHub Repository</h3>
+        <p>View source code, contribute, and report issues</p>
+        <a href="https://github.com/freeCodeCamp/curriculum-db" target="_blank">View on GitHub →</a>
       </div>
     </div>
 

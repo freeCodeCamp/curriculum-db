@@ -2,6 +2,9 @@
 
 A TypeScript GraphQL API server for freeCodeCamp curriculum metadata, built as a pnpm monorepo with Turbo. Provides structured access to curriculum data including superblocks, blocks, challenges, and certifications.
 
+> [!WARNING]
+> This project is in early alpha. The API is under active development and may undergo breaking changes without notice.
+
 ## Quick Start
 
 ```bash
