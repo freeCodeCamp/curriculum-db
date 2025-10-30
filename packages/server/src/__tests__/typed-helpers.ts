@@ -40,3 +40,19 @@ export type CertificationsQueryResponse = {
 export type HealthCheckQueryResponse = {
   _health: Query['_health'];
 };
+
+/**
+ * Extended certification query response with superblock details
+ */
+export type CertificationsWithSuperblockQueryResponse = {
+  certifications: Array<{
+    dashedName: string;
+    superblock: {
+      dashedName: string;
+      isCertification: boolean;
+      blockObjects: Array<{
+        isUpcomingChange: boolean;
+      }>;
+    };
+  }>;
+};

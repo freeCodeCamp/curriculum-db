@@ -74,7 +74,10 @@ export const Query: QueryResolvers = {
   // User Story 4: Certifications
   certifications: (_parent, _args, context) => {
     const curriculum = context.getCurriculum();
-    return curriculum.certifications.map((dashedName) => ({ dashedName }));
+    // Filter out certifications that don't have loaded superblocks
+    return curriculum.certifications
+      .filter((dashedName) => context.getSuperblock(dashedName) !== null)
+      .map((dashedName) => ({ dashedName }));
   },
 
   // Health monitoring

@@ -17,6 +17,7 @@ import type {
   ChallengeQueryResponse,
   ChallengesQueryResponse,
   CertificationsQueryResponse,
+  CertificationsWithSuperblockQueryResponse,
 } from './typed-helpers.js';
 
 let executor: GraphQLExecutor;
@@ -405,7 +406,8 @@ describe('GraphQL Query Validation', () => {
       expectValidGraphQLResponse(result);
 
       expect(result.data.certifications).toBeInstanceOf(Array);
-      expect(result.data.certifications.length).toBeGreaterThan(20);
+      // Only certifications with loaded superblocks are returned
+      expect(result.data.certifications.length).toBeGreaterThan(15);
 
       for (const cert of result.data.certifications) {
         expect(cert.dashedName).toBeDefined();
@@ -474,6 +476,40 @@ describe('GraphQL Query Validation', () => {
         dashedNames,
         'certifications should have unique dashedNames'
       );
+    });
+
+    it('should resolve superblock field for certifications', async () => {
+      const result =
+        await executor.execute<CertificationsWithSuperblockQueryResponse>({
+          document: parse(`
+          query GetCertificationsWithSuperblock {
+            certifications {
+              dashedName
+              superblock {
+                dashedName
+                isCertification
+                blockObjects {
+                  isUpcomingChange
+                }
+              }
+            }
+          }
+        `),
+        });
+
+      expectValidGraphQLResponse(result);
+
+      expect(result.data.certifications).toBeInstanceOf(Array);
+      expect(result.data.certifications.length).toBeGreaterThan(0);
+
+      // All returned certifications should have valid superblocks
+      for (const cert of result.data.certifications) {
+        expect(cert.dashedName).toBeDefined();
+        expect(cert.superblock).toBeDefined();
+        expect(cert.superblock.dashedName).toBe(cert.dashedName);
+        expect(cert.superblock.isCertification).toBe(true);
+        expect(cert.superblock.blockObjects).toBeInstanceOf(Array);
+      }
     });
   });
 });
