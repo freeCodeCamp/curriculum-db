@@ -230,7 +230,7 @@ query GetSuperblockStructure {
     <p class="subtitle">Access curriculum metadata for superblocks, blocks, and challenges</p>
 
     <div class="section">
-      <h2>🚀 Getting Started</h2>
+      <h2>Getting Started</h2>
       <div class="link-card">
         <h3>GraphQL Playground</h3>
         <p>Interactive GraphiQL interface to explore and test queries</p>
@@ -249,16 +249,103 @@ query GetSuperblockStructure {
     </div>
 
     <div class="section">
-      <h2>📚 Example Query</h2>
+      <h2>Statistics</h2>
       <div class="link-card">
-        <p>Try this query in GraphiQL:</p>
+        <p style="margin-bottom: 1rem;">The API provides access to the complete freeCodeCamp curriculum structure:</p>
+        <ul style="list-style: none; padding: 0;">
+          <li style="padding: 0.5rem 0; border-bottom: 1px solid rgba(255,255,255,0.1);">
+            <strong style="color: #3eeca8;">37</strong> <span style="color: #aaa;">Superblocks</span>
+          </li>
+          <li style="padding: 0.5rem 0; border-bottom: 1px solid rgba(255,255,255,0.1);">
+            <strong style="color: #3eeca8;">38</strong> <span style="color: #aaa;">Chapters (v9 curriculum primitive)</span>
+          </li>
+          <li style="padding: 0.5rem 0; border-bottom: 1px solid rgba(255,255,255,0.1);">
+            <strong style="color: #3eeca8;">217</strong> <span style="color: #aaa;">Modules (v9 curriculum primitive)</span>
+          </li>
+          <li style="padding: 0.5rem 0; border-bottom: 1px solid rgba(255,255,255,0.1);">
+            <strong style="color: #3eeca8;">779</strong> <span style="color: #aaa;">Unique Blocks (deduplicated)</span>
+          </li>
+          <li style="padding: 0.5rem 0;">
+            <strong style="color: #3eeca8;">14,038</strong> <span style="color: #aaa;">Challenges</span>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>Legacy Curriculum</h2>
+      <div class="link-card">
+        <h3>Hierarchical Structure</h3>
+        <p>The new v9 curriculum introduces a three-level hierarchy:</p>
+        <p style="margin-top: 0.5rem;"><span class="code">Superblock → Chapter → Module → Block</span></p>
+        <p style="margin-top: 1rem; color: #ddd;">Query chapters and modules directly:</p>
+        <pre style="background: rgba(0,0,0,0.3); padding: 1rem; border-radius: 4px; overflow-x: auto; font-size: 0.85rem; line-height: 1.5; margin-top: 0.5rem;">
+query {
+  chapters(superblockDashedName: "full-stack-developer") {
+    dashedName
+    modules {
+      dashedName
+      blocks
+    }
+  }
+}</pre>
+      </div>
+      <div class="link-card" style="margin-top: 1rem;">
+        <h3>Block Sharing</h3>
+        <p>In v9 curriculum, blocks can be shared across multiple superblocks. The API automatically deduplicates blocks and tracks all parent superblocks:</p>
+        <pre style="background: rgba(0,0,0,0.3); padding: 1rem; border-radius: 4px; overflow-x: auto; font-size: 0.85rem; line-height: 1.5; margin-top: 0.5rem;">
+query {
+  block(dashedName: "learn-html-by-building-a-cat-photo-app") {
+    title
+    superblocks {
+      dashedName
+      title
+    }
+  }
+}</pre>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>Example Queries</h2>
+      <div class="link-card">
+        <h3>Get Curriculum Overview</h3>
         <pre style="background: rgba(0,0,0,0.3); padding: 1rem; border-radius: 4px; overflow-x: auto; font-size: 0.85rem; line-height: 1.5;">
 query {
   curriculum {
     superblocks
+    certifications
   }
+}</pre>
+      </div>
+      <div class="link-card">
+        <h3>Explore a Superblock (Legacy)</h3>
+        <pre style="background: rgba(0,0,0,0.3); padding: 1rem; border-radius: 4px; overflow-x: auto; font-size: 0.85rem; line-height: 1.5;">
+query {
   superblock(dashedName: "responsive-web-design") {
+    title
     blocks
+    challenges {
+      id
+      title
+    }
+  }
+}</pre>
+      </div>
+      <div class="link-card">
+        <h3>Query Modules by Chapter</h3>
+        <pre style="background: rgba(0,0,0,0.3); padding: 1rem; border-radius: 4px; overflow-x: auto; font-size: 0.85rem; line-height: 1.5;">
+query {
+  modules(chapterDashedName: "html") {
+    dashedName
+    moduleType
+    blockObjects {
+      title
+      challenges {
+        id
+        title
+      }
+    }
   }
 }</pre>
       </div>

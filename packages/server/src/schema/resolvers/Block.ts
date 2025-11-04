@@ -1,22 +1,15 @@
 import type { BlockResolvers } from '../types.generated.js';
-import { GraphQLError } from 'graphql';
 
 export const Block: BlockResolvers = {
-  superblock: (parent, _args, context) => {
-    const superblock = context.getSuperblock(parent.superblockDashedName);
-    if (!superblock) {
-      throw new GraphQLError(
-        `Superblock not found for block: ${parent.dashedName}`,
-        {
-          extensions: {
-            code: 'SUPERBLOCK_NOT_FOUND',
-            blockDashedName: parent.dashedName,
-            superblockDashedName: parent.superblockDashedName,
-          },
-        }
-      );
+  superblocks: (parent, _args, context) => {
+    const superblocks = [];
+    for (const superblockName of parent.superblockDashedNames) {
+      const superblock = context.getSuperblock(superblockName);
+      if (superblock) {
+        superblocks.push(superblock);
+      }
     }
-    return superblock;
+    return superblocks;
   },
 
   challengeOrder: (parent) => [...parent.challenges],

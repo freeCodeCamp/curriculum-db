@@ -56,9 +56,19 @@ describe('Data Loader Functions', () => {
 
       expect(result.success).toBe(true);
       if (result.success) {
-        expect(result.data.blocks).toBeInstanceOf(Array);
-        expect(result.data.blocks.length).toBeGreaterThan(0);
-        // RawSuperblock only has blocks field, dashedName is added during normalization
+        // RawSuperblock can have either blocks or chapters
+        const hasBlocks =
+          result.data.blocks && Array.isArray(result.data.blocks);
+        const hasChapters =
+          result.data.chapters && Array.isArray(result.data.chapters);
+        expect(hasBlocks || hasChapters).toBe(true);
+
+        if (hasBlocks) {
+          expect(result.data.blocks!.length).toBeGreaterThan(0);
+        }
+        if (hasChapters) {
+          expect(result.data.chapters!.length).toBeGreaterThan(0);
+        }
       }
     });
 
