@@ -5,13 +5,13 @@ import { createTestExecutor } from './setup.js';
 import { KNOWN_TEST_DATA } from './fixtures.js';
 import { expectValidGraphQLResponse } from './helpers.js';
 
-type BlockWithSuperblockResponse = {
+type BlockWithSuperblocksResponse = {
   block: {
     dashedName: string;
-    superblock: {
+    superblocks: Array<{
       dashedName: string;
       blocks: string[];
-    };
+    }>;
     challengeOrder: Array<{
       id: string;
       title: string;
@@ -27,13 +27,13 @@ beforeAll(async () => {
 
 describe('Resolver Field Coverage', () => {
   describe('Block Resolvers', () => {
-    it('should resolve Block.superblock field', async () => {
-      const result = await executor.execute<BlockWithSuperblockResponse>({
+    it('should resolve Block.superblocks field', async () => {
+      const result = await executor.execute<BlockWithSuperblocksResponse>({
         document: parse(`
-          query GetBlockWithSuperblock($dashedName: String!) {
+          query GetBlockWithSuperblocks($dashedName: String!) {
             block(dashedName: $dashedName) {
               dashedName
-              superblock {
+              superblocks {
                 dashedName
                 blocks
               }
@@ -47,14 +47,19 @@ describe('Resolver Field Coverage', () => {
 
       const block = result.data.block;
       expect(block).toBeDefined();
-      expect(block?.superblock).toBeDefined();
-      expect(block?.superblock.dashedName).toBeDefined();
-      expect(typeof block?.superblock.dashedName).toBe('string');
-      expect(block?.superblock.blocks).toBeInstanceOf(Array);
+      expect(block?.superblocks).toBeInstanceOf(Array);
+      expect(block?.superblocks.length).toBeGreaterThan(0);
+
+      // Verify each superblock has expected structure
+      for (const superblock of block?.superblocks || []) {
+        expect(superblock.dashedName).toBeDefined();
+        expect(typeof superblock.dashedName).toBe('string');
+        expect(superblock.blocks).toBeInstanceOf(Array);
+      }
     });
 
     it('should resolve Block.challengeOrder field', async () => {
-      const result = await executor.execute<BlockWithSuperblockResponse>({
+      const result = await executor.execute<BlockWithSuperblocksResponse>({
         document: parse(`
           query GetBlockWithChallenges($dashedName: String!) {
             block(dashedName: $dashedName) {

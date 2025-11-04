@@ -6,29 +6,32 @@ const config: CodegenConfig = {
     './src/schema/types.generated.ts': {
       plugins: ['typescript', 'typescript-resolvers'],
       config: {
-        // Type mappers - connect GraphQL types to Sprint 002 internal types
+        // Type mappers - connect GraphQL types to internal types
         mappers: {
           Curriculum: '../data/types.js#CurriculumData',
           Superblock: '../data/types.js#SuperblockData',
+          Chapter: '../data/types.js#ChapterData',
+          Module: '../data/types.js#ModuleData',
           Block: '../data/types.js#BlockData',
-          Challenge: '../data/types.js#ChallengeMetadata',  // Critical: Metadata only!
-          Certification: '../data/types.js#CertificationData'
+          Challenge: '../data/types.js#ChallengeMetadata', // Critical: Metadata only!
+          Certification: '../data/types.js#CertificationData',
+          // RequiredResource uses generated type (simple structure, no mapping needed)
         },
 
         // Enum mappers - reference existing enums
         enumValues: {
           BlockLayout: '../data/types.js#BlockLayout',
-          BlockType: '../data/types.js#BlockType'
+          BlockLabel: '../data/types.js#BlockLabel',
         },
 
         // Context type for all resolvers
         contextType: '../data/types.js#DataProvider',
 
         // Type safety settings
-        useIndexSignature: false,  // No [key: string]: any
-        strictScalars: true,       // Validate scalar types
+        useIndexSignature: false, // No [key: string]: any
+        strictScalars: true, // Validate scalar types
         scalars: {
-          ID: 'string'
+          ID: 'string',
         },
 
         // Additional options
@@ -36,11 +39,11 @@ const config: CodegenConfig = {
         avoidOptionals: {
           field: false,
           inputValue: false,
-          object: true
-        }
-      }
-    }
-  }
+          object: true,
+        },
+      },
+    },
+  },
 };
 
 export default config;

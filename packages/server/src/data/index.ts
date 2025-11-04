@@ -53,24 +53,23 @@ export async function initializeDataStore(
   const rawSuperblocks = superblockResult.data;
 
   // Phase 3: Collect all block names from all superblocks
-  // Note: Some superblocks use a different structure (chapters/modules) and are skipped
+  // Supports both legacy (flat blocks) and new v9 (hierarchical chapters/modules) structures
   const allBlockNames: string[] = [];
-  const validSuperblocks = new Map<
-    string,
-    import('./types.js').RawSuperblock
-  >();
 
-  for (const [superblockName, superblock] of rawSuperblocks.entries()) {
-    // Skip superblocks with non-standard structure (e.g., chapters/modules)
-    if (!superblock.blocks || !Array.isArray(superblock.blocks)) {
-      console.warn(
-        `Skipping superblock "${superblockName}" - uses non-standard structure`
-      );
-      continue;
+  for (const [_superblockName, superblock] of rawSuperblocks.entries()) {
+    // Legacy structure (flat blocks)
+    if (superblock.blocks) {
+      allBlockNames.push(...superblock.blocks);
     }
-    validSuperblocks.set(superblockName, superblock);
-    const blocks = superblock.blocks as string[];
-    allBlockNames.push(...blocks);
+
+    // New v9 structure (chapters/modules)
+    if (superblock.chapters) {
+      for (const chapter of superblock.chapters) {
+        for (const module of chapter.modules) {
+          allBlockNames.push(...module.blocks);
+        }
+      }
+    }
   }
 
   // Phase 4: Load all blocks in parallel
@@ -83,7 +82,7 @@ export async function initializeDataStore(
   if (!curriculumValidation.success) return curriculumValidation;
 
   const superblockValidation = validateSuperblockReferences(
-    validSuperblocks,
+    rawSuperblocks,
     rawBlocks
   );
   if (!superblockValidation.success) return superblockValidation;
@@ -107,30 +106,34 @@ export async function initializeDataStore(
   const curriculum = normalizeCurriculum(rawCurriculum);
   const certSet = new Set(curriculum.certifications);
 
-  // Phase 8: Normalize superblocks (only valid ones)
+  // Phase 8: Normalize all superblocks (both legacy and v9 structures)
   const superblocks = new Map<string, SuperblockData>(
-    Array.from(validSuperblocks.entries()).map(([name, raw]) => [
+    Array.from(rawSuperblocks.entries()).map(([name, raw]) => [
       name,
       normalizeSuperblock(name, raw, certSet),
     ])
   );
 
-  // Phase 9: Build block-to-superblock mapping (for reverse references)
-  const blockToSuperblock = new Map<string, string>();
+  // Phase 9: Build block-to-superblocks mapping (for reverse references)
+  // Note: Blocks can belong to multiple superblocks in v9 curriculum
+  const blockToSuperblocks = new Map<string, string[]>();
   for (const [superblockName, superblock] of superblocks) {
     for (const blockName of superblock.blocks) {
-      blockToSuperblock.set(blockName, superblockName);
+      if (!blockToSuperblocks.has(blockName)) {
+        blockToSuperblocks.set(blockName, []);
+      }
+      blockToSuperblocks.get(blockName)!.push(superblockName);
     }
   }
 
   // Phase 10: Normalize blocks with reverse references
   const blocks = new Map<string, BlockData>(
     Array.from(rawBlocks.entries()).map(([name, raw]) => {
-      const superblockName = blockToSuperblock.get(name);
-      if (!superblockName) {
+      const superblockNames = blockToSuperblocks.get(name);
+      if (!superblockNames || superblockNames.length === 0) {
         throw new Error(`Block "${name}" has no parent superblock`);
       }
-      return [name, normalizeBlock(name, raw, superblockName)];
+      return [name, normalizeBlock(name, raw, superblockNames)];
     })
   );
 
@@ -164,7 +167,8 @@ export {
 
 export {
   normalizeBlockLayout,
-  normalizeBlockType,
+  normalizeBlockLabel,
+  normalizeRequiredResources,
   normalizeCurriculum,
   normalizeSuperblock,
   normalizeBlock,

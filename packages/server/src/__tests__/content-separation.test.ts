@@ -145,6 +145,8 @@ describe('Content Separation Validation (US3)', () => {
               dataStore {
                 memoryUsageMB
                 superblockCount
+                chapterCount
+                moduleCount
                 blockCount
                 challengeCount
               }
@@ -163,6 +165,8 @@ describe('Content Separation Validation (US3)', () => {
       // Log stats for visibility
       console.log('Memory usage validation:');
       console.log(`  - ${health.dataStore.superblockCount} superblocks`);
+      console.log(`  - ${health.dataStore.chapterCount} chapters`);
+      console.log(`  - ${health.dataStore.moduleCount} modules`);
       console.log(`  - ${health.dataStore.blockCount} blocks`);
       console.log(`  - ${health.dataStore.challengeCount} challenges`);
       console.log(`  - ${health.dataStore.memoryUsageMB} MB memory`);

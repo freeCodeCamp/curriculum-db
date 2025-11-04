@@ -1,9 +1,11 @@
 import { BlockLayout } from '../data/types.js';
-import { BlockType } from '../data/types.js';
+import { BlockLabel } from '../data/types.js';
 import { GraphQLResolveInfo } from 'graphql';
 import {
   CurriculumData,
   SuperblockData,
+  ChapterData,
+  ModuleData,
   BlockData,
   ChallengeMetadata,
   CertificationData,
@@ -49,14 +51,27 @@ export type Scalars = {
  * Contains challenges, layout information, and pedagogical metadata
  */
 export type Block = {
+  /**
+   * Pedagogical classification (optional)
+   * Field name changed from blockType to blockLabel to match actual JSON data
+   */
+  blockLabel?: Maybe<BlockLabel>;
   /** UI layout type for this block */
   blockLayout: BlockLayout;
-  /** Pedagogical classification (optional) */
-  blockType?: Maybe<BlockType>;
   /** Ordered list of challenges in this block */
   challengeOrder: Array<Challenge>;
   /** Unique identifier (e.g., 'basic-html') */
   dashedName: Scalars['String']['output'];
+  /**
+   * Disable infinite loop protection in preview (optional)
+   * Used for challenges that need continuous execution
+   */
+  disableLoopProtectPreview?: Maybe<Scalars['Boolean']['output']>;
+  /**
+   * Disable infinite loop protection in tests (optional)
+   * Used for performance-intensive challenges like algorithms
+   */
+  disableLoopProtectTests?: Maybe<Scalars['Boolean']['output']>;
   /** Flag indicating editable region boundaries feature */
   hasEditableBoundaries?: Maybe<Scalars['Boolean']['output']>;
   /** Category for help/support (e.g., 'HTML-CSS') */
@@ -65,15 +80,28 @@ export type Block = {
   isUpcomingChange: Scalars['Boolean']['output'];
   /** Human-readable name (e.g., 'Basic HTML') */
   name: Scalars['String']['output'];
-  /** Parent superblock (reverse reference for bidirectional navigation) */
-  superblock: Superblock;
+  /**
+   * External resources required for challenges (optional)
+   * CDN scripts for libraries like React, jQuery, D3, Bootstrap
+   */
+  required?: Maybe<Array<RequiredResource>>;
+  /**
+   * Parent superblocks (reverse reference for bidirectional navigation)
+   * Note: In v9 curriculum, blocks can be shared across multiple superblocks
+   */
+  superblocks: Array<Superblock>;
+  /**
+   * HTML template for challenge rendering (optional)
+   * Contains placeholders for dynamic content injection
+   */
+  template?: Maybe<Scalars['String']['output']>;
   /** Flag indicating multi-file editor feature */
   usesMultifileEditor?: Maybe<Scalars['Boolean']['output']>;
 };
 
-export { BlockLayout };
+export { BlockLabel };
 
-export { BlockType };
+export { BlockLayout };
 
 /**
  * Certification wrapper around superblock
@@ -138,6 +166,21 @@ export type ChallengeFile = {
 };
 
 /**
+ * Chapter within a superblock (new v9 curriculum)
+ * Groups related modules together
+ */
+export type Chapter = {
+  /** Flag indicating if chapter is coming soon (not yet available) */
+  comingSoon: Scalars['Boolean']['output'];
+  /** Unique identifier for the chapter (e.g., 'html', 'javascript') */
+  dashedName: Scalars['String']['output'];
+  /** Modules within this chapter */
+  modules: Array<Module>;
+  /** Parent superblock (reverse reference for bidirectional navigation) */
+  superblock: Superblock;
+};
+
+/**
  * Top-level curriculum structure
  * Contains lists of superblocks and certifications
  */
@@ -150,12 +193,16 @@ export type Curriculum = {
 
 /** Curriculum data store metrics and memory usage */
 export type DataStoreMetrics = {
-  /** Number of loaded blocks */
+  /** Number of loaded unique blocks (deduplicated) */
   blockCount: Scalars['Int']['output'];
   /** Number of loaded challenge metadata entries */
   challengeCount: Scalars['Int']['output'];
+  /** Number of loaded chapters (v9 curriculum primitive) */
+  chapterCount: Scalars['Int']['output'];
   /** Current heap memory usage in megabytes */
   memoryUsageMB: Scalars['Float']['output'];
+  /** Number of loaded modules (v9 curriculum primitive) */
+  moduleCount: Scalars['Int']['output'];
   /** Number of loaded superblocks */
   superblockCount: Scalars['Int']['output'];
 };
@@ -168,6 +215,25 @@ export type HealthCheck = {
   status: Scalars['String']['output'];
   /** Uptime in seconds since server became operational */
   uptime: Scalars['Int']['output'];
+};
+
+/**
+ * Module within a chapter (new v9 curriculum)
+ * Contains a set of related blocks
+ */
+export type Module = {
+  /** Resolved Block objects (convenience field) */
+  blockObjects: Array<Block>;
+  /** Array of block identifiers in this module */
+  blocks: Array<Scalars['String']['output']>;
+  /** Parent chapter (reverse reference for bidirectional navigation) */
+  chapter: Chapter;
+  /** Flag indicating if module is coming soon (not yet available) */
+  comingSoon: Scalars['Boolean']['output'];
+  /** Unique identifier for the module (e.g., 'basic-html', 'semantic-html') */
+  dashedName: Scalars['String']['output'];
+  /** Type of module (e.g., 'review', 'practice') - optional */
+  moduleType?: Maybe<Scalars['String']['output']>;
 };
 
 /**
@@ -207,8 +273,18 @@ export type Query = {
   challenge?: Maybe<Challenge>;
   /** Get all challenges, optionally filtered by block */
   challenges: Array<Challenge>;
+  /**
+   * Get all chapters, optionally filtered by superblock (v9 curriculum)
+   * Returns empty array for legacy flat curriculum superblocks
+   */
+  chapters: Array<Chapter>;
   /** Get complete curriculum structure */
   curriculum: Curriculum;
+  /**
+   * Get all modules, optionally filtered by chapter or superblock (v9 curriculum)
+   * Returns empty array for legacy flat curriculum superblocks
+   */
+  modules: Array<Module>;
   /** Get single superblock by identifier */
   superblock?: Maybe<Superblock>;
   /** Get all superblocks */
@@ -331,8 +407,71 @@ export type QueryChallengesArgs = {
  * - BlockLayout → BlockLayout enum
  * - BlockType → BlockType enum
  */
+export type QueryChaptersArgs = {
+  superblockDashedName: InputMaybe<Scalars['String']['input']>;
+};
+
+/**
+ * freeCodeCamp Curriculum GraphQL API Schema
+ * Sprint 004 - Schema Definition and Code Generation
+ *
+ * This schema defines the complete API contract for curriculum metadata queries.
+ * All types map to internal TypeScript types via @graphql-codegen type mappers.
+ *
+ * Metadata/Content Separation:
+ * - Challenge metadata (id, title) always available
+ * - Challenge content (description, instructions, tests) returns null in MVP
+ * - ChallengeContent types included for future v2 database integration
+ *
+ * Type Mappers (configured in codegen.ts):
+ * - Curriculum → CurriculumData
+ * - Superblock → SuperblockData
+ * - Block → BlockData
+ * - Challenge → ChallengeMetadata (NOT full ChallengeData)
+ * - BlockLayout → BlockLayout enum
+ * - BlockType → BlockType enum
+ */
+export type QueryModulesArgs = {
+  chapterDashedName: InputMaybe<Scalars['String']['input']>;
+  superblockDashedName: InputMaybe<Scalars['String']['input']>;
+};
+
+/**
+ * freeCodeCamp Curriculum GraphQL API Schema
+ * Sprint 004 - Schema Definition and Code Generation
+ *
+ * This schema defines the complete API contract for curriculum metadata queries.
+ * All types map to internal TypeScript types via @graphql-codegen type mappers.
+ *
+ * Metadata/Content Separation:
+ * - Challenge metadata (id, title) always available
+ * - Challenge content (description, instructions, tests) returns null in MVP
+ * - ChallengeContent types included for future v2 database integration
+ *
+ * Type Mappers (configured in codegen.ts):
+ * - Curriculum → CurriculumData
+ * - Superblock → SuperblockData
+ * - Block → BlockData
+ * - Challenge → ChallengeMetadata (NOT full ChallengeData)
+ * - BlockLayout → BlockLayout enum
+ * - BlockType → BlockType enum
+ */
 export type QuerySuperblockArgs = {
   dashedName: Scalars['String']['input'];
+};
+
+/**
+ * External resource (CDN script or stylesheet) required for challenges
+ * Used in blocks that depend on external libraries
+ */
+export type RequiredResource = {
+  /**
+   * CDN URL for CSS stylesheet (optional)
+   * Note: Either src or link must be present
+   */
+  link?: Maybe<Scalars['String']['output']>;
+  /** CDN URL for JavaScript library (optional) */
+  src?: Maybe<Scalars['String']['output']>;
 };
 
 /**
@@ -346,13 +485,18 @@ export type Solution = {
 
 /**
  * Major curriculum area (e.g., Responsive Web Design)
- * Contains blocks and certification status
+ * Supports both legacy (flat) and new v9 (hierarchical) curriculum structures
  */
 export type Superblock = {
-  /** Resolved Block objects (convenience field for bidirectional navigation) */
+  /** Resolved Block objects - flattened view (convenience field) */
   blockObjects: Array<Block>;
-  /** Array of block identifiers */
+  /** Flattened array of all block identifiers (from all chapters/modules) */
   blocks: Array<Scalars['String']['output']>;
+  /**
+   * Hierarchical chapter structure (new v9 curriculum)
+   * Empty array for legacy flat curriculum
+   */
+  chapters: Array<Chapter>;
   /** Unique identifier (e.g., 'responsive-web-design') */
   dashedName: Scalars['String']['output'];
   /** True if this superblock is certification-eligible */
@@ -490,20 +634,23 @@ export type DirectiveResolverFn<
 /** Mapping between all available schema types and the resolvers types */
 export type ResolversTypes = {
   Block: ResolverTypeWrapper<BlockData>;
+  BlockLabel: BlockLabel;
   BlockLayout: BlockLayout;
-  BlockType: BlockType;
   Boolean: ResolverTypeWrapper<Scalars['Boolean']['output']>;
   Certification: ResolverTypeWrapper<CertificationData>;
   Challenge: ResolverTypeWrapper<ChallengeMetadata>;
   ChallengeContent: ResolverTypeWrapper<ChallengeContent>;
   ChallengeFile: ResolverTypeWrapper<ChallengeFile>;
+  Chapter: ResolverTypeWrapper<ChapterData>;
   Curriculum: ResolverTypeWrapper<CurriculumData>;
   DataStoreMetrics: ResolverTypeWrapper<DataStoreMetrics>;
   Float: ResolverTypeWrapper<Scalars['Float']['output']>;
   HealthCheck: ResolverTypeWrapper<HealthCheck>;
   ID: ResolverTypeWrapper<Scalars['ID']['output']>;
   Int: ResolverTypeWrapper<Scalars['Int']['output']>;
+  Module: ResolverTypeWrapper<ModuleData>;
   Query: ResolverTypeWrapper<Record<PropertyKey, never>>;
+  RequiredResource: ResolverTypeWrapper<RequiredResource>;
   Solution: ResolverTypeWrapper<Solution>;
   String: ResolverTypeWrapper<Scalars['String']['output']>;
   Superblock: ResolverTypeWrapper<SuperblockData>;
@@ -518,13 +665,16 @@ export type ResolversParentTypes = {
   Challenge: ChallengeMetadata;
   ChallengeContent: ChallengeContent;
   ChallengeFile: ChallengeFile;
+  Chapter: ChapterData;
   Curriculum: CurriculumData;
   DataStoreMetrics: DataStoreMetrics;
   Float: Scalars['Float']['output'];
   HealthCheck: HealthCheck;
   ID: Scalars['ID']['output'];
   Int: Scalars['Int']['output'];
+  Module: ModuleData;
   Query: Record<PropertyKey, never>;
+  RequiredResource: RequiredResource;
   Solution: Solution;
   String: Scalars['String']['output'];
   Superblock: SuperblockData;
@@ -536,13 +686,13 @@ export type BlockResolvers<
   ParentType extends
     ResolversParentTypes['Block'] = ResolversParentTypes['Block'],
 > = {
-  blockLayout?: Resolver<
-    ResolversTypes['BlockLayout'],
+  blockLabel?: Resolver<
+    Maybe<ResolversTypes['BlockLabel']>,
     ParentType,
     ContextType
   >;
-  blockType?: Resolver<
-    Maybe<ResolversTypes['BlockType']>,
+  blockLayout?: Resolver<
+    ResolversTypes['BlockLayout'],
     ParentType,
     ContextType
   >;
@@ -552,6 +702,16 @@ export type BlockResolvers<
     ContextType
   >;
   dashedName?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  disableLoopProtectPreview?: Resolver<
+    Maybe<ResolversTypes['Boolean']>,
+    ParentType,
+    ContextType
+  >;
+  disableLoopProtectTests?: Resolver<
+    Maybe<ResolversTypes['Boolean']>,
+    ParentType,
+    ContextType
+  >;
   hasEditableBoundaries?: Resolver<
     Maybe<ResolversTypes['Boolean']>,
     ParentType,
@@ -564,13 +724,38 @@ export type BlockResolvers<
     ContextType
   >;
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  superblock?: Resolver<ResolversTypes['Superblock'], ParentType, ContextType>;
+  required?: Resolver<
+    Maybe<Array<ResolversTypes['RequiredResource']>>,
+    ParentType,
+    ContextType
+  >;
+  superblocks?: Resolver<
+    Array<ResolversTypes['Superblock']>,
+    ParentType,
+    ContextType
+  >;
+  template?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   usesMultifileEditor?: Resolver<
     Maybe<ResolversTypes['Boolean']>,
     ParentType,
     ContextType
   >;
 };
+
+export type BlockLabelResolvers = EnumResolverSignature<
+  {
+    EXAM?: any;
+    LAB?: any;
+    LEARN?: any;
+    LECTURE?: any;
+    PRACTICE?: any;
+    QUIZ?: any;
+    REVIEW?: any;
+    WARM_UP?: any;
+    WORKSHOP?: any;
+  },
+  ResolversTypes['BlockLabel']
+>;
 
 export type BlockLayoutResolvers = EnumResolverSignature<
   {
@@ -584,21 +769,6 @@ export type BlockLayoutResolvers = EnumResolverSignature<
     PROJECT_LIST?: any;
   },
   ResolversTypes['BlockLayout']
->;
-
-export type BlockTypeResolvers = EnumResolverSignature<
-  {
-    EXAM?: any;
-    LAB?: any;
-    LEARN?: any;
-    LECTURE?: any;
-    PRACTICE?: any;
-    QUIZ?: any;
-    REVIEW?: any;
-    WARM_UP?: any;
-    WORKSHOP?: any;
-  },
-  ResolversTypes['BlockType']
 >;
 
 export type CertificationResolvers<
@@ -660,6 +830,17 @@ export type ChallengeFileResolvers<
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
 };
 
+export type ChapterResolvers<
+  ContextType = DataProvider,
+  ParentType extends
+    ResolversParentTypes['Chapter'] = ResolversParentTypes['Chapter'],
+> = {
+  comingSoon?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+  dashedName?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  modules?: Resolver<Array<ResolversTypes['Module']>, ParentType, ContextType>;
+  superblock?: Resolver<ResolversTypes['Superblock'], ParentType, ContextType>;
+};
+
 export type CurriculumResolvers<
   ContextType = DataProvider,
   ParentType extends
@@ -684,7 +865,9 @@ export type DataStoreMetricsResolvers<
 > = {
   blockCount?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   challengeCount?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  chapterCount?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   memoryUsageMB?: Resolver<ResolversTypes['Float'], ParentType, ContextType>;
+  moduleCount?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   superblockCount?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
 };
 
@@ -700,6 +883,27 @@ export type HealthCheckResolvers<
   >;
   status?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   uptime?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+};
+
+export type ModuleResolvers<
+  ContextType = DataProvider,
+  ParentType extends
+    ResolversParentTypes['Module'] = ResolversParentTypes['Module'],
+> = {
+  blockObjects?: Resolver<
+    Array<ResolversTypes['Block']>,
+    ParentType,
+    ContextType
+  >;
+  blocks?: Resolver<Array<ResolversTypes['String']>, ParentType, ContextType>;
+  chapter?: Resolver<ResolversTypes['Chapter'], ParentType, ContextType>;
+  comingSoon?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+  dashedName?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  moduleType?: Resolver<
+    Maybe<ResolversTypes['String']>,
+    ParentType,
+    ContextType
+  >;
 };
 
 export type QueryResolvers<
@@ -737,7 +941,19 @@ export type QueryResolvers<
     ContextType,
     Partial<QueryChallengesArgs>
   >;
+  chapters?: Resolver<
+    Array<ResolversTypes['Chapter']>,
+    ParentType,
+    ContextType,
+    Partial<QueryChaptersArgs>
+  >;
   curriculum?: Resolver<ResolversTypes['Curriculum'], ParentType, ContextType>;
+  modules?: Resolver<
+    Array<ResolversTypes['Module']>,
+    ParentType,
+    ContextType,
+    Partial<QueryModulesArgs>
+  >;
   superblock?: Resolver<
     Maybe<ResolversTypes['Superblock']>,
     ParentType,
@@ -749,6 +965,15 @@ export type QueryResolvers<
     ParentType,
     ContextType
   >;
+};
+
+export type RequiredResourceResolvers<
+  ContextType = DataProvider,
+  ParentType extends
+    ResolversParentTypes['RequiredResource'] = ResolversParentTypes['RequiredResource'],
+> = {
+  link?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  src?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
 };
 
 export type SolutionResolvers<
@@ -774,6 +999,11 @@ export type SuperblockResolvers<
     ContextType
   >;
   blocks?: Resolver<Array<ResolversTypes['String']>, ParentType, ContextType>;
+  chapters?: Resolver<
+    Array<ResolversTypes['Chapter']>,
+    ParentType,
+    ContextType
+  >;
   dashedName?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   isCertification?: Resolver<
     ResolversTypes['Boolean'],
@@ -793,16 +1023,19 @@ export type TestResolvers<
 
 export type Resolvers<ContextType = DataProvider> = {
   Block?: BlockResolvers<ContextType>;
+  BlockLabel?: BlockLabelResolvers;
   BlockLayout?: BlockLayoutResolvers;
-  BlockType?: BlockTypeResolvers;
   Certification?: CertificationResolvers<ContextType>;
   Challenge?: ChallengeResolvers<ContextType>;
   ChallengeContent?: ChallengeContentResolvers<ContextType>;
   ChallengeFile?: ChallengeFileResolvers<ContextType>;
+  Chapter?: ChapterResolvers<ContextType>;
   Curriculum?: CurriculumResolvers<ContextType>;
   DataStoreMetrics?: DataStoreMetricsResolvers<ContextType>;
   HealthCheck?: HealthCheckResolvers<ContextType>;
+  Module?: ModuleResolvers<ContextType>;
   Query?: QueryResolvers<ContextType>;
+  RequiredResource?: RequiredResourceResolvers<ContextType>;
   Solution?: SolutionResolvers<ContextType>;
   Superblock?: SuperblockResolvers<ContextType>;
   Test?: TestResolvers<ContextType>;

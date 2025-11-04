@@ -9,7 +9,7 @@ import type {
   RawSuperblock,
   RawBlock,
   RawChallenge,
-  RawBlockType,
+  RawBlockLabel,
 } from '../data/types.js';
 
 describe('Data Validators', () => {
@@ -212,7 +212,7 @@ describe('Data Validators', () => {
           helpCategory: 'test',
           challengeOrder: [{ id: 'c1', title: 'Challenge 1' }],
           blockLayout: 'challenge-list',
-          blockType: type as RawBlockType,
+          blockLabel: type as RawBlockLabel,
           isUpcomingChange: false,
         };
 
@@ -221,7 +221,7 @@ describe('Data Validators', () => {
       }
     });
 
-    it('should succeed when blockType is not provided', () => {
+    it('should succeed when blockLabel is not provided', () => {
       const block: RawBlock = {
         name: 'Test Block',
         dashedName: 'test-block',
@@ -235,12 +235,14 @@ describe('Data Validators', () => {
       expect(result.success).toBe(true);
     });
 
-    it('should fail for invalid blockType', () => {
+    it('should fail for invalid blockLabel', () => {
       const block = {
+        name: 'Test Block',
         dashedName: 'test-block',
+        helpCategory: 'test',
         challengeOrder: [{ id: 'c1', title: 'Challenge 1' }],
         blockLayout: 'challenge-list',
-        blockType: 'invalid-type',
+        blockLabel: 'invalid-type',
       } as unknown as RawBlock;
 
       const result = validateBlockEnums(block, 'test-block.json');
@@ -248,9 +250,9 @@ describe('Data Validators', () => {
 
       if (!result.success) {
         expect(result.error.message).toContain('invalid-type');
-        expect(result.error.message).toContain('blockType');
+        expect(result.error.message).toContain('blockLabel');
         expect(result.error.filePath).toBe('test-block.json');
-        expect(result.error.field).toBe('blockType');
+        expect(result.error.field).toBe('blockLabel');
       }
     });
   });

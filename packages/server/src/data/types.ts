@@ -38,10 +38,11 @@ export type RawBlockLayout =
   | 'legacy-link';
 
 /**
- * Raw block type classification as stored in JSON files.
+ * Raw block label classification as stored in JSON files.
  * Mirrors exact kebab-case string literals from curriculum data.
+ * Note: Field name in JSON is "blockLabel" not "blockType"
  */
-export type RawBlockType =
+export type RawBlockLabel =
   | 'lecture'
   | 'lab'
   | 'workshop'
@@ -51,6 +52,16 @@ export type RawBlockType =
   | 'warm-up'
   | 'practice'
   | 'learn';
+
+/**
+ * External resource (CDN script or stylesheet) required for challenges.
+ * Used in blocks that depend on external libraries (React, jQuery, etc.)
+ * Can have either 'src' (for JS) or 'link' (for CSS)
+ */
+export interface RawRequiredResource {
+  readonly src?: string;
+  readonly link?: string;
+}
 
 /**
  * Raw challenge object from block JSON files.
@@ -72,11 +83,36 @@ export interface RawCurriculum {
 }
 
 /**
+ * Raw module structure within a chapter (new v9 curriculum).
+ * Contains blocks and optional metadata.
+ */
+export interface RawModule {
+  readonly dashedName: string;
+  readonly blocks: readonly string[];
+  readonly moduleType?: string;
+  readonly comingSoon?: boolean;
+}
+
+/**
+ * Raw chapter structure (new v9 curriculum).
+ * Contains modules and optional metadata.
+ */
+export interface RawChapter {
+  readonly dashedName: string;
+  readonly modules: readonly RawModule[];
+  readonly comingSoon?: boolean;
+}
+
+/**
  * Raw superblock structure from superblocks/*.json files.
- * Contains list of block identifiers for the superblock.
+ * Supports both legacy (flat blocks) and new (hierarchical chapters/modules) structures.
  */
 export interface RawSuperblock {
-  readonly blocks: readonly string[];
+  // Legacy structure (flat)
+  readonly blocks?: readonly string[];
+
+  // New v9 structure (hierarchical)
+  readonly chapters?: readonly RawChapter[];
 }
 
 /**
@@ -90,10 +126,14 @@ export interface RawBlock {
   readonly helpCategory: string;
   readonly challengeOrder: readonly RawChallenge[];
   readonly blockLayout: RawBlockLayout;
-  readonly blockType?: RawBlockType;
+  readonly blockLabel?: RawBlockLabel;
   readonly isUpcomingChange: boolean;
   readonly usesMultifileEditor?: boolean;
   readonly hasEditableBoundaries?: boolean;
+  readonly disableLoopProtectTests?: boolean;
+  readonly disableLoopProtectPreview?: boolean;
+  readonly required?: readonly RawRequiredResource[];
+  readonly template?: string;
 }
 
 // ============================================================================
@@ -117,11 +157,12 @@ export enum BlockLayout {
 }
 
 /**
- * Normalized block type enumeration.
+ * Normalized block label enumeration.
  * SCREAMING_SNAKE_CASE follows TypeScript enum conventions.
  * Used for pedagogical classification in business logic.
+ * Note: Renamed from BlockType to match actual JSON field name "blockLabel"
  */
-export enum BlockType {
+export enum BlockLabel {
   LECTURE = 'LECTURE',
   LAB = 'LAB',
   WORKSHOP = 'WORKSHOP',
@@ -131,6 +172,16 @@ export enum BlockType {
   WARM_UP = 'WARM_UP',
   PRACTICE = 'PRACTICE',
   LEARN = 'LEARN',
+}
+
+/**
+ * Normalized external resource structure.
+ * Contains CDN URL for external library or stylesheet required by challenges.
+ * Can have either 'src' (for JS) or 'link' (for CSS)
+ */
+export interface RequiredResource {
+  readonly src?: string | null;
+  readonly link?: string | null;
 }
 
 // ============================================================================
@@ -162,12 +213,42 @@ export interface CurriculumData {
 }
 
 /**
+ * Normalized module data (new v9 curriculum).
+ * Contains blocks within a chapter module and optional metadata.
+ */
+export interface ModuleData {
+  readonly dashedName: string;
+  readonly blocks: readonly string[];
+  readonly moduleType: string | null;
+  readonly comingSoon: boolean;
+  readonly chapterDashedName: string; // Parent chapter reference
+  readonly superblockDashedName: string; // Parent superblock reference (for resolver)
+}
+
+/**
+ * Normalized chapter data (new v9 curriculum).
+ * Contains modules within a chapter and optional metadata.
+ */
+export interface ChapterData {
+  readonly dashedName: string;
+  readonly modules: readonly ModuleData[];
+  readonly comingSoon: boolean;
+  readonly superblockDashedName: string; // Parent reference
+}
+
+/**
  * Normalized superblock data with enriched relationships.
- * Includes computed isCertification flag and block references.
+ * Supports both legacy (flat blocks) and new (hierarchical chapters/modules) structures.
  */
 export interface SuperblockData {
   readonly dashedName: string;
+
+  // Flattened view (all blocks from all chapters/modules)
   readonly blocks: readonly string[];
+
+  // New v9 hierarchical structure
+  readonly chapters: readonly ChapterData[];
+
   readonly isCertification: boolean;
 }
 
@@ -187,7 +268,8 @@ export interface CertificationData {
 /**
  * Normalized block data with bidirectional relationships.
  * Includes normalized enums, explicit null for optionals, and reverse reference
- * to parent superblock for O(1) traversal.
+ * to parent superblock(s) for O(1) traversal.
+ * Note: In v9 curriculum, blocks can be shared across multiple superblocks.
  */
 export interface BlockData {
   readonly name: string;
@@ -195,11 +277,15 @@ export interface BlockData {
   readonly helpCategory: string;
   readonly challenges: readonly ChallengeMetadata[];
   readonly blockLayout: BlockLayout;
-  readonly blockType: BlockType | null;
+  readonly blockLabel: BlockLabel | null;
   readonly isUpcomingChange: boolean;
   readonly usesMultifileEditor: boolean | null;
   readonly hasEditableBoundaries: boolean | null;
-  readonly superblockDashedName: string;
+  readonly disableLoopProtectTests: boolean | null;
+  readonly disableLoopProtectPreview: boolean | null;
+  readonly required: readonly RequiredResource[] | null;
+  readonly template: string | null;
+  readonly superblockDashedNames: readonly string[]; // Can have multiple parents in v9
 }
 
 // ============================================================================

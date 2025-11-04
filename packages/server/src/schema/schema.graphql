@@ -60,6 +60,18 @@ type Query {
   certifications: [Certification!]!
 
   """
+  Get all chapters, optionally filtered by superblock (v9 curriculum)
+  Returns empty array for legacy flat curriculum superblocks
+  """
+  chapters(superblockDashedName: String): [Chapter!]!
+
+  """
+  Get all modules, optionally filtered by chapter or superblock (v9 curriculum)
+  Returns empty array for legacy flat curriculum superblocks
+  """
+  modules(superblockDashedName: String, chapterDashedName: String): [Module!]!
+
+  """
   Server health check query
   Returns current operational status and data store metrics
   Useful for monitoring dashboards and load balancers
@@ -85,7 +97,7 @@ type Curriculum {
 
 """
 Major curriculum area (e.g., Responsive Web Design)
-Contains blocks and certification status
+Supports both legacy (flat) and new v9 (hierarchical) curriculum structures
 """
 type Superblock {
   """
@@ -94,19 +106,87 @@ type Superblock {
   dashedName: String!
 
   """
-  Array of block identifiers
+  Flattened array of all block identifiers (from all chapters/modules)
   """
   blocks: [String!]!
 
   """
-  Resolved Block objects (convenience field for bidirectional navigation)
+  Resolved Block objects - flattened view (convenience field)
   """
   blockObjects: [Block!]!
+
+  """
+  Hierarchical chapter structure (new v9 curriculum)
+  Empty array for legacy flat curriculum
+  """
+  chapters: [Chapter!]!
 
   """
   True if this superblock is certification-eligible
   """
   isCertification: Boolean!
+}
+
+"""
+Chapter within a superblock (new v9 curriculum)
+Groups related modules together
+"""
+type Chapter {
+  """
+  Unique identifier for the chapter (e.g., 'html', 'javascript')
+  """
+  dashedName: String!
+
+  """
+  Modules within this chapter
+  """
+  modules: [Module!]!
+
+  """
+  Flag indicating if chapter is coming soon (not yet available)
+  """
+  comingSoon: Boolean!
+
+  """
+  Parent superblock (reverse reference for bidirectional navigation)
+  """
+  superblock: Superblock!
+}
+
+"""
+Module within a chapter (new v9 curriculum)
+Contains a set of related blocks
+"""
+type Module {
+  """
+  Unique identifier for the module (e.g., 'basic-html', 'semantic-html')
+  """
+  dashedName: String!
+
+  """
+  Array of block identifiers in this module
+  """
+  blocks: [String!]!
+
+  """
+  Resolved Block objects (convenience field)
+  """
+  blockObjects: [Block!]!
+
+  """
+  Type of module (e.g., 'review', 'practice') - optional
+  """
+  moduleType: String
+
+  """
+  Flag indicating if module is coming soon (not yet available)
+  """
+  comingSoon: Boolean!
+
+  """
+  Parent chapter (reverse reference for bidirectional navigation)
+  """
+  chapter: Chapter!
 }
 
 """
@@ -141,8 +221,9 @@ type Block {
 
   """
   Pedagogical classification (optional)
+  Field name changed from blockType to blockLabel to match actual JSON data
   """
-  blockType: BlockType
+  blockLabel: BlockLabel
 
   """
   Flag indicating work-in-progress module
@@ -160,9 +241,34 @@ type Block {
   hasEditableBoundaries: Boolean
 
   """
-  Parent superblock (reverse reference for bidirectional navigation)
+  Disable infinite loop protection in tests (optional)
+  Used for performance-intensive challenges like algorithms
   """
-  superblock: Superblock!
+  disableLoopProtectTests: Boolean
+
+  """
+  Disable infinite loop protection in preview (optional)
+  Used for challenges that need continuous execution
+  """
+  disableLoopProtectPreview: Boolean
+
+  """
+  External resources required for challenges (optional)
+  CDN scripts for libraries like React, jQuery, D3, Bootstrap
+  """
+  required: [RequiredResource!]
+
+  """
+  HTML template for challenge rendering (optional)
+  Contains placeholders for dynamic content injection
+  """
+  template: String
+
+  """
+  Parent superblocks (reverse reference for bidirectional navigation)
+  Note: In v9 curriculum, blocks can be shared across multiple superblocks
+  """
+  superblocks: [Superblock!]!
 }
 
 """
@@ -214,8 +320,9 @@ enum BlockLayout {
 """
 Pedagogical classification for blocks
 Describes the learning approach or activity type
+Renamed from BlockType to BlockLabel to match actual JSON data
 """
-enum BlockType {
+enum BlockLabel {
   """
   Instructional content block
   """
@@ -260,6 +367,23 @@ enum BlockType {
   General learning block
   """
   LEARN
+}
+
+"""
+External resource (CDN script or stylesheet) required for challenges
+Used in blocks that depend on external libraries
+"""
+type RequiredResource {
+  """
+  CDN URL for JavaScript library (optional)
+  """
+  src: String
+
+  """
+  CDN URL for CSS stylesheet (optional)
+  Note: Either src or link must be present
+  """
+  link: String
 }
 
 """
@@ -420,7 +544,17 @@ type DataStoreMetrics {
   superblockCount: Int!
 
   """
-  Number of loaded blocks
+  Number of loaded chapters (v9 curriculum primitive)
+  """
+  chapterCount: Int!
+
+  """
+  Number of loaded modules (v9 curriculum primitive)
+  """
+  moduleCount: Int!
+
+  """
+  Number of loaded unique blocks (deduplicated)
   """
   blockCount: Int!
 

@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { initializeDataStore } from '../data/index.js';
 import { getTestDataStore } from './setup.js';
-import { BlockLayout, BlockType } from '../data/types.js';
+import { BlockLayout, BlockLabel } from '../data/types.js';
 
 describe('Data Loading Validation', () => {
   describe('initializeDataStore()', () => {
@@ -58,8 +58,10 @@ describe('Data Loading Validation', () => {
           expect(block).toBeDefined();
           expect(block?.dashedName).toBe(blockName);
 
-          // Block should reference back to its superblock
-          expect(block?.superblockDashedName).toBe(superblock.dashedName);
+          // Block should reference back to its superblock(s)
+          // Note: In v9 curriculum, blocks can belong to multiple superblocks
+          expect(block?.superblockDashedNames).toBeInstanceOf(Array);
+          expect(block?.superblockDashedNames).toContain(superblock.dashedName);
         }
       }
     });
@@ -75,14 +77,14 @@ describe('Data Loading Validation', () => {
       }
     });
 
-    it('should verify BlockType enum values conform to defined types', async () => {
+    it('should verify BlockLabel enum values conform to defined types', async () => {
       const store = await getTestDataStore();
-      const validTypes = Object.values(BlockType);
+      const validLabels = Object.values(BlockLabel);
 
       for (const block of store.blocks.values()) {
-        // BlockType is optional, so null is valid
-        if (block.blockType !== null) {
-          expect(validTypes).toContain(block.blockType);
+        // BlockLabel is optional, so null is valid
+        if (block.blockLabel !== null) {
+          expect(validLabels).toContain(block.blockLabel);
         }
       }
     });

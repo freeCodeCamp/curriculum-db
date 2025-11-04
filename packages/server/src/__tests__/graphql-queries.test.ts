@@ -201,8 +201,8 @@ describe('GraphQL Query Validation', () => {
 
       const block = result.data.block;
 
-      // blockType is nullable
-      expectNullableField(block?.blockType);
+      // blockLabel is nullable
+      expectNullableField(block?.blockLabel);
 
       // isUpcomingChange is nullable
       expectNullableField(block?.isUpcomingChange);

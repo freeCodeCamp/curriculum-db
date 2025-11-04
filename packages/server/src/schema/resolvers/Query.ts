@@ -1,5 +1,10 @@
 import type { QueryResolvers } from '../types.generated.js';
-import type { BlockData, ChallengeMetadata } from '../../data/types.js';
+import type {
+  BlockData,
+  ChallengeMetadata,
+  ChapterData,
+  ModuleData,
+} from '../../data/types.js';
 import { getUptimeSeconds } from '../../uptime.js';
 
 export const Query: QueryResolvers = {
@@ -32,19 +37,24 @@ export const Query: QueryResolvers = {
         .filter((block): block is BlockData => block !== null);
     }
 
-    // No filter: return all blocks
+    // No filter: return all unique blocks (deduplicated)
+    // Note: In v9 curriculum, blocks can appear in multiple superblocks
     const curriculum = context.getCurriculum();
-    const allBlocks: BlockData[] = [];
+    const blockMap = new Map<string, BlockData>();
+
     for (const sbName of curriculum.superblocks) {
       const superblock = context.getSuperblock(sbName);
       if (superblock) {
         for (const blockName of superblock.blocks) {
-          const block = context.getBlock(blockName);
-          if (block) allBlocks.push(block);
+          if (!blockMap.has(blockName)) {
+            const block = context.getBlock(blockName);
+            if (block) blockMap.set(blockName, block);
+          }
         }
       }
     }
-    return allBlocks;
+
+    return Array.from(blockMap.values());
   },
 
   challenges: (_parent, { blockDashedName }, context) => {
@@ -80,6 +90,69 @@ export const Query: QueryResolvers = {
       .map((dashedName) => ({ dashedName }));
   },
 
+  // V9 Curriculum: Chapters
+  chapters: (_parent, { superblockDashedName }, context) => {
+    if (superblockDashedName) {
+      const superblock = context.getSuperblock(superblockDashedName);
+      if (!superblock) return [];
+      return [...superblock.chapters];
+    }
+
+    // No filter: return all chapters from all superblocks
+    const curriculum = context.getCurriculum();
+    const allChapters: ChapterData[] = [];
+    for (const sbName of curriculum.superblocks) {
+      const superblock = context.getSuperblock(sbName);
+      if (superblock) {
+        allChapters.push(...superblock.chapters);
+      }
+    }
+    return allChapters;
+  },
+
+  // V9 Curriculum: Modules
+  modules: (_parent, { superblockDashedName, chapterDashedName }, context) => {
+    // Filter by specific chapter (most specific)
+    if (chapterDashedName) {
+      const curriculum = context.getCurriculum();
+      for (const sbName of curriculum.superblocks) {
+        const superblock = context.getSuperblock(sbName);
+        if (superblock) {
+          const chapter = superblock.chapters.find(
+            (ch) => ch.dashedName === chapterDashedName
+          );
+          if (chapter) return [...chapter.modules];
+        }
+      }
+      return [];
+    }
+
+    // Filter by superblock
+    if (superblockDashedName) {
+      const superblock = context.getSuperblock(superblockDashedName);
+      if (!superblock) return [];
+
+      const allModules: ModuleData[] = [];
+      for (const chapter of superblock.chapters) {
+        allModules.push(...chapter.modules);
+      }
+      return allModules;
+    }
+
+    // No filter: return all modules from all chapters
+    const curriculum = context.getCurriculum();
+    const allModules: ModuleData[] = [];
+    for (const sbName of curriculum.superblocks) {
+      const superblock = context.getSuperblock(sbName);
+      if (superblock) {
+        for (const chapter of superblock.chapters) {
+          allModules.push(...chapter.modules);
+        }
+      }
+    }
+    return allModules;
+  },
+
   // Health monitoring
   _health: (_parent, _args, context) => {
     const curriculum = context.getCurriculum();
@@ -87,23 +160,36 @@ export const Query: QueryResolvers = {
     // Count superblocks
     const superblockCount = curriculum.superblocks.length;
 
-    // Count blocks across all superblocks
-    let blockCount = 0;
+    // Count chapters and modules (v9 curriculum primitives)
+    let chapterCount = 0;
+    let moduleCount = 0;
     for (const sbName of curriculum.superblocks) {
       const sb = context.getSuperblock(sbName);
-      if (sb) blockCount += sb.blocks.length;
+      if (sb) {
+        chapterCount += sb.chapters.length;
+        for (const chapter of sb.chapters) {
+          moduleCount += chapter.modules.length;
+        }
+      }
     }
 
-    // Count challenges across all blocks
-    let challengeCount = 0;
+    // Count unique blocks (deduplicate since blocks can appear in multiple superblocks)
+    const uniqueBlocks = new Set<string>();
     for (const sbName of curriculum.superblocks) {
       const sb = context.getSuperblock(sbName);
       if (sb) {
         for (const blockName of sb.blocks) {
-          const block = context.getBlock(blockName);
-          if (block) challengeCount += block.challenges.length;
+          uniqueBlocks.add(blockName);
         }
       }
+    }
+    const blockCount = uniqueBlocks.size;
+
+    // Count unique challenges (deduplicate via block deduplication)
+    let challengeCount = 0;
+    for (const blockName of uniqueBlocks) {
+      const block = context.getBlock(blockName);
+      if (block) challengeCount += block.challenges.length;
     }
 
     // Calculate memory usage
@@ -115,6 +201,8 @@ export const Query: QueryResolvers = {
       uptime: getUptimeSeconds(),
       dataStore: {
         superblockCount,
+        chapterCount,
+        moduleCount,
         blockCount,
         challengeCount,
         memoryUsageMB,

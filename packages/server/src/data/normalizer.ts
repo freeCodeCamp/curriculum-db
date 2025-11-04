@@ -1,16 +1,22 @@
 import {
   type RawBlockLayout,
-  type RawBlockType,
+  type RawBlockLabel,
   type RawCurriculum,
   type RawSuperblock,
+  type RawChapter,
+  type RawModule,
   type RawBlock,
   type RawChallenge,
+  type RawRequiredResource,
   BlockLayout,
-  BlockType,
+  BlockLabel,
   type CurriculumData,
   type SuperblockData,
+  type ChapterData,
+  type ModuleData,
   type BlockData,
   type ChallengeMetadata,
+  type RequiredResource,
 } from './types.js';
 
 /**
@@ -30,16 +36,16 @@ const BLOCK_LAYOUT_MAPPING: Record<RawBlockLayout, BlockLayout> = {
   'legacy-link': BlockLayout.LEGACY_LINK,
 };
 
-const BLOCK_TYPE_MAPPING: Record<RawBlockType, BlockType> = {
-  lecture: BlockType.LECTURE,
-  lab: BlockType.LAB,
-  workshop: BlockType.WORKSHOP,
-  review: BlockType.REVIEW,
-  quiz: BlockType.QUIZ,
-  exam: BlockType.EXAM,
-  'warm-up': BlockType.WARM_UP,
-  practice: BlockType.PRACTICE,
-  learn: BlockType.LEARN,
+const BLOCK_LABEL_MAPPING: Record<RawBlockLabel, BlockLabel> = {
+  lecture: BlockLabel.LECTURE,
+  lab: BlockLabel.LAB,
+  workshop: BlockLabel.WORKSHOP,
+  review: BlockLabel.REVIEW,
+  quiz: BlockLabel.QUIZ,
+  exam: BlockLabel.EXAM,
+  'warm-up': BlockLabel.WARM_UP,
+  practice: BlockLabel.PRACTICE,
+  learn: BlockLabel.LEARN,
 };
 
 /**
@@ -52,14 +58,29 @@ export function normalizeBlockLayout(raw: RawBlockLayout): BlockLayout {
 }
 
 /**
- * Normalize block type from kebab-case to SCREAMING_SNAKE_CASE enum or null
- * @param raw Raw block type string or undefined
- * @returns BlockType enum value or explicit null
+ * Normalize block label from kebab-case to SCREAMING_SNAKE_CASE enum or null
+ * @param raw Raw block label string or undefined
+ * @returns BlockLabel enum value or explicit null
  */
-export function normalizeBlockType(
-  raw: RawBlockType | undefined
-): BlockType | null {
-  return raw !== undefined ? BLOCK_TYPE_MAPPING[raw] : null;
+export function normalizeBlockLabel(
+  raw: RawBlockLabel | undefined
+): BlockLabel | null {
+  return raw !== undefined ? BLOCK_LABEL_MAPPING[raw] : null;
+}
+
+/**
+ * Normalize required resources array
+ * @param raw Raw required resources array or undefined
+ * @returns Normalized array or explicit null
+ */
+export function normalizeRequiredResources(
+  raw: readonly RawRequiredResource[] | undefined
+): readonly RequiredResource[] | null {
+  if (raw === undefined) return null;
+  return raw.map((resource) => ({
+    src: resource.src ?? null,
+    link: resource.link ?? null,
+  }));
 }
 
 /**
@@ -75,7 +96,50 @@ export function normalizeCurriculum(raw: RawCurriculum): CurriculumData {
 }
 
 /**
+ * Normalize module with parent reference
+ * @param raw Raw module from JSON
+ * @param chapterDashedName Parent chapter identifier
+ * @param superblockDashedName Parent superblock identifier
+ * @returns Normalized module data
+ */
+export function normalizeModule(
+  raw: RawModule,
+  chapterDashedName: string,
+  superblockDashedName: string
+): ModuleData {
+  return {
+    dashedName: raw.dashedName,
+    blocks: raw.blocks,
+    moduleType: raw.moduleType ?? null,
+    comingSoon: raw.comingSoon ?? false,
+    chapterDashedName,
+    superblockDashedName,
+  };
+}
+
+/**
+ * Normalize chapter with parent reference
+ * @param raw Raw chapter from JSON
+ * @param superblockDashedName Parent superblock identifier
+ * @returns Normalized chapter data
+ */
+export function normalizeChapter(
+  raw: RawChapter,
+  superblockDashedName: string
+): ChapterData {
+  return {
+    dashedName: raw.dashedName,
+    modules: raw.modules.map((module) =>
+      normalizeModule(module, raw.dashedName, superblockDashedName)
+    ),
+    comingSoon: raw.comingSoon ?? false,
+    superblockDashedName,
+  };
+}
+
+/**
  * Normalize superblock with computed isCertification flag
+ * Supports both legacy (flat blocks) and new (hierarchical chapters/modules) structures
  * @param dashedName Superblock identifier
  * @param raw Raw superblock from JSON
  * @param certifications Set of certification names
@@ -86,24 +150,46 @@ export function normalizeSuperblock(
   raw: RawSuperblock,
   certifications: Set<string>
 ): SuperblockData {
+  let chapters: ChapterData[] = [];
+  let flattenedBlocks: string[] = [];
+
+  // Handle new v9 structure (chapters/modules)
+  if (raw.chapters) {
+    chapters = raw.chapters.map((chapter) =>
+      normalizeChapter(chapter, dashedName)
+    );
+
+    // Flatten blocks from all chapters/modules
+    for (const chapter of chapters) {
+      for (const module of chapter.modules) {
+        flattenedBlocks.push(...module.blocks);
+      }
+    }
+  }
+  // Handle legacy structure (flat blocks)
+  else if (raw.blocks) {
+    flattenedBlocks = [...raw.blocks];
+  }
+
   return {
     dashedName,
-    blocks: raw.blocks,
+    blocks: flattenedBlocks,
+    chapters,
     isCertification: certifications.has(dashedName),
   };
 }
 
 /**
- * Normalize block with enum conversion, explicit null, and reverse reference
+ * Normalize block with enum conversion, explicit null, and reverse references
  * @param dashedName Block identifier
  * @param raw Raw block from JSON
- * @param superblockDashedName Parent superblock identifier
+ * @param superblockDashedNames Parent superblock identifiers (can be multiple in v9)
  * @returns Normalized block data
  */
 export function normalizeBlock(
   dashedName: string,
   raw: RawBlock,
-  superblockDashedName: string
+  superblockDashedNames: readonly string[]
 ): BlockData {
   return {
     name: raw.name,
@@ -113,11 +199,15 @@ export function normalizeBlock(
       normalizeChallengeMetadata(ch, dashedName)
     ),
     blockLayout: normalizeBlockLayout(raw.blockLayout),
-    blockType: normalizeBlockType(raw.blockType),
+    blockLabel: normalizeBlockLabel(raw.blockLabel),
     isUpcomingChange: raw.isUpcomingChange,
     usesMultifileEditor: raw.usesMultifileEditor ?? null,
     hasEditableBoundaries: raw.hasEditableBoundaries ?? null,
-    superblockDashedName,
+    disableLoopProtectTests: raw.disableLoopProtectTests ?? null,
+    disableLoopProtectPreview: raw.disableLoopProtectPreview ?? null,
+    required: normalizeRequiredResources(raw.required),
+    template: raw.template ?? null,
+    superblockDashedNames,
   };
 }
 

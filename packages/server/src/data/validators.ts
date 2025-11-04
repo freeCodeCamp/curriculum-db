@@ -3,7 +3,7 @@ import {
   type RawBlock,
   type RawChallenge,
   type RawBlockLayout,
-  type RawBlockType,
+  type RawBlockLabel,
   type Result,
   DataValidationError,
 } from './types.js';
@@ -25,7 +25,7 @@ const VALID_BLOCK_LAYOUTS: readonly RawBlockLayout[] = [
   'legacy-link',
 ];
 
-const VALID_BLOCK_TYPES: readonly RawBlockType[] = [
+const VALID_BLOCK_LABELS: readonly RawBlockLabel[] = [
   'lecture',
   'lab',
   'workshop',
@@ -56,6 +56,7 @@ export function validateCurriculumReferences(): Result<
 
 /**
  * Validate superblock references to blocks
+ * Supports both legacy (flat blocks) and new (hierarchical chapters/modules) structures
  * @param superblocks All loaded superblocks
  * @param blocks All loaded blocks
  * @returns Result success or validation error
@@ -65,7 +66,25 @@ export function validateSuperblockReferences(
   blocks: Map<string, RawBlock>
 ): Result<void, DataValidationError> {
   for (const [superblockName, superblock] of superblocks) {
-    for (const blockName of superblock.blocks) {
+    // Collect all block references from superblock (handling both structures)
+    const blockReferences: string[] = [];
+
+    // Legacy structure (flat blocks)
+    if (superblock.blocks) {
+      blockReferences.push(...superblock.blocks);
+    }
+
+    // New v9 structure (chapters/modules)
+    if (superblock.chapters) {
+      for (const chapter of superblock.chapters) {
+        for (const module of chapter.modules) {
+          blockReferences.push(...module.blocks);
+        }
+      }
+    }
+
+    // Validate all block references exist
+    for (const blockName of blockReferences) {
       if (!blocks.has(blockName)) {
         return {
           success: false,
@@ -104,18 +123,73 @@ export function validateBlockEnums(
     };
   }
 
-  // Validate blockType if present
-  if (block.blockType !== undefined) {
-    if (!VALID_BLOCK_TYPES.includes(block.blockType)) {
+  // Validate blockLabel if present
+  if (block.blockLabel !== undefined) {
+    if (!VALID_BLOCK_LABELS.includes(block.blockLabel)) {
       return {
         success: false,
         error: new DataValidationError(
-          `Invalid blockType value: "${block.blockType}". Valid values: ${VALID_BLOCK_TYPES.join(', ')}`,
+          `Invalid blockLabel value: "${block.blockLabel}". Valid values: ${VALID_BLOCK_LABELS.join(', ')}`,
           blockPath,
-          'blockType'
+          'blockLabel'
         ),
       };
     }
+  }
+
+  // Validate required resources structure if present
+  if (block.required !== undefined) {
+    if (!Array.isArray(block.required)) {
+      return {
+        success: false,
+        error: new DataValidationError(
+          'required field must be an array',
+          blockPath,
+          'required'
+        ),
+      };
+    }
+
+    for (let i = 0; i < block.required.length; i++) {
+      const resource = block.required[i];
+      if (!resource) {
+        return {
+          success: false,
+          error: new DataValidationError(
+            `required[${i}] is null or undefined`,
+            blockPath,
+            `required[${i}]`
+          ),
+        };
+      }
+
+      // Must have either src (for JS) or link (for CSS)
+      const hasSrc = typeof resource.src === 'string';
+      const hasLink = typeof resource.link === 'string';
+
+      if (!hasSrc && !hasLink) {
+        return {
+          success: false,
+          error: new DataValidationError(
+            `required[${i}] must have either "src" or "link" field of type string`,
+            blockPath,
+            `required[${i}]`
+          ),
+        };
+      }
+    }
+  }
+
+  // Validate template is string if present
+  if (block.template !== undefined && typeof block.template !== 'string') {
+    return {
+      success: false,
+      error: new DataValidationError(
+        'template field must be a string',
+        blockPath,
+        'template'
+      ),
+    };
   }
 
   return { success: true, data: undefined };

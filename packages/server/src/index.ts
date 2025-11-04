@@ -69,21 +69,36 @@ async function main() {
     const curriculum = dataProvider.getCurriculum();
     const superblockCount = curriculum.superblocks.length;
 
-    let blockCount = 0;
+    // Count chapters and modules (v9 curriculum primitives)
+    let chapterCount = 0;
+    let moduleCount = 0;
     for (const sbName of curriculum.superblocks) {
       const sb = dataProvider.getSuperblock(sbName);
-      if (sb) blockCount += sb.blocks.length;
+      if (sb) {
+        chapterCount += sb.chapters.length;
+        for (const chapter of sb.chapters) {
+          moduleCount += chapter.modules.length;
+        }
+      }
     }
 
-    let challengeCount = 0;
+    // Count unique blocks (deduplicate since blocks can appear in multiple superblocks)
+    const uniqueBlocks = new Set<string>();
     for (const sbName of curriculum.superblocks) {
       const sb = dataProvider.getSuperblock(sbName);
       if (sb) {
         for (const blockName of sb.blocks) {
-          const block = dataProvider.getBlock(blockName);
-          if (block) challengeCount += block.challenges.length;
+          uniqueBlocks.add(blockName);
         }
       }
+    }
+    const blockCount = uniqueBlocks.size;
+
+    // Count unique challenges (deduplicate via block deduplication)
+    let challengeCount = 0;
+    for (const blockName of uniqueBlocks) {
+      const block = dataProvider.getBlock(blockName);
+      if (block) challengeCount += block.challenges.length;
     }
 
     const memoryMB =
@@ -94,6 +109,8 @@ async function main() {
     console.log(`  GraphQL endpoint: http://localhost:${PORT}/graphql`);
     console.log(`\n  Loaded curriculum data:`);
     console.log(`  - ${superblockCount} superblocks`);
+    console.log(`  - ${chapterCount} chapters`);
+    console.log(`  - ${moduleCount} modules`);
     console.log(`  - ${blockCount} blocks`);
     console.log(`  - ${challengeCount} challenges`);
     console.log(`  - Memory usage: ${memoryMB} MB`);

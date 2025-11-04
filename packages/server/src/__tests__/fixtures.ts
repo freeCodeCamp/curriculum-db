@@ -56,7 +56,7 @@ export const TEST_QUERIES = {
         dashedName
         helpCategory
         blockLayout
-        blockType
+        blockLabel
         isUpcomingChange
         challengeOrder {
           id
@@ -71,7 +71,7 @@ export const TEST_QUERIES = {
       blocks(superblockDashedName: $superblockDashedName) {
         dashedName
         name
-        blockType
+        blockLabel
         blockLayout
       }
     }
@@ -123,6 +123,8 @@ export const TEST_QUERIES = {
     query GetHealth {
       _health {
         superblockCount
+        chapterCount
+        moduleCount
         blockCount
         challengeCount
         memoryUsageMB
