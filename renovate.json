@@ -1,38 +1,61 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": ["github>freecodecamp/renovate-config"],
+  "extends": [
+    "github>freecodecamp/renovate-config"
+  ],
   "packageRules": [
     {
       "groupName": "vitest monorepo",
-      "matchPackagePatterns": ["^vitest", "^@vitest/"],
-      "description": "Group all Vitest packages together for coordinated testing framework updates"
+      "description": "Group all Vitest packages together for coordinated testing framework updates",
+      "matchPackageNames": [
+        "/^vitest/",
+        "/^@vitest//"
+      ]
     },
     {
       "groupName": "GraphQL Code Generator",
-      "matchPackagePatterns": ["^@graphql-codegen/"],
-      "description": "Group all GraphQL Code Generator packages for coordinated codegen updates"
+      "description": "Group all GraphQL Code Generator packages for coordinated codegen updates",
+      "matchPackageNames": [
+        "/^@graphql-codegen//"
+      ]
     },
     {
       "groupName": "GraphQL ecosystem",
-      "matchPackageNames": ["graphql", "graphql-yoga"],
-      "matchPackagePatterns": ["^@graphql-tools/"],
+      "matchPackageNames": [
+        "graphql",
+        "graphql-yoga",
+        "/^@graphql-tools//"
+      ],
       "description": "Group core GraphQL runtime packages and tools"
     },
     {
       "groupName": "code quality tools",
-      "matchPackageNames": ["oxlint", "prettier", "lint-staged"],
+      "matchPackageNames": [
+        "oxlint",
+        "prettier",
+        "lint-staged"
+      ],
       "description": "Group linting and formatting tools for coordinated updates"
     },
     {
       "groupName": "build tools",
-      "matchPackageNames": ["turbo", "typescript", "tsx"],
+      "matchPackageNames": [
+        "turbo",
+        "typescript",
+        "tsx"
+      ],
       "description": "Group build and compilation toolchain"
     },
     {
       "groupName": "type definitions (non-major)",
-      "matchPackagePatterns": ["^@types/"],
-      "matchUpdateTypes": ["minor", "patch"],
-      "description": "Group TypeScript type definition updates (non-breaking)"
+      "matchUpdateTypes": [
+        "minor",
+        "patch"
+      ],
+      "description": "Group TypeScript type definition updates (non-breaking)",
+      "matchPackageNames": [
+        "/^@types//"
+      ]
     }
   ]
 }
