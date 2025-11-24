@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Request support on the community forum
+    url: https://forum.freecodecamp.org
+    about: Visit our community forum for genral support and FAQs
+  - name: Technical support for your freeCodeCamp account
+    url: https://www.freecodecamp.org/support
+    about: Please visit this page for requesting technical support related to your freeCodeCamp account.
