@@ -49,6 +49,20 @@ const BLOCK_LABEL_MAPPING: Record<RawBlockLabel, BlockLabel> = {
 };
 
 /**
+ * Convert dashedName to human-readable title case name.
+ * Examples:
+ *   "responsive-web-design" → "Responsive Web Design"
+ *   "javascript-algorithms-and-data-structures" → "JavaScript Algorithms and Data Structures"
+ *   "front-end-development-libraries" → "Front End Development Libraries"
+ */
+function dashedNameToTitle(dashedName: string): string {
+  return dashedName
+    .split('-')
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
+}
+
+/**
  * Normalize block layout from kebab-case to SCREAMING_SNAKE_CASE enum
  * @param raw Raw block layout string
  * @returns BlockLayout enum value
@@ -171,7 +185,11 @@ export function normalizeSuperblock(
     flattenedBlocks = [...raw.blocks];
   }
 
+  // Use the name from JSON if available, otherwise generate from dashedName
+  const name = raw.name ?? dashedNameToTitle(dashedName);
+
   return {
+    name,
     dashedName,
     blocks: flattenedBlocks,
     chapters,

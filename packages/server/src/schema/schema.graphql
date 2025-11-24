@@ -101,6 +101,11 @@ Supports both legacy (flat) and new v9 (hierarchical) curriculum structures
 """
 type Superblock {
   """
+  Human-readable name (e.g., 'Responsive Web Design')
+  """
+  name: String!
+
+  """
   Unique identifier (e.g., 'responsive-web-design')
   """
   dashedName: String!
