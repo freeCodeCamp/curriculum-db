@@ -501,6 +501,8 @@ export type Superblock = {
   dashedName: Scalars['String']['output'];
   /** True if this superblock is certification-eligible */
   isCertification: Scalars['Boolean']['output'];
+  /** Human-readable name (e.g., 'Responsive Web Design') */
+  name: Scalars['String']['output'];
 };
 
 /**
@@ -1010,6 +1012,7 @@ export type SuperblockResolvers<
     ParentType,
     ContextType
   >;
+  name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
 };
 
 export type TestResolvers<

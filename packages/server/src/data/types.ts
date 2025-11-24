@@ -108,6 +108,10 @@ export interface RawChapter {
  * Supports both legacy (flat blocks) and new (hierarchical chapters/modules) structures.
  */
 export interface RawSuperblock {
+  // Optional human-readable name (e.g., "Responsive Web Design")
+  // If not present in JSON, will be generated from dashedName
+  readonly name?: string;
+
   // Legacy structure (flat)
   readonly blocks?: readonly string[];
 
@@ -241,6 +245,7 @@ export interface ChapterData {
  * Supports both legacy (flat blocks) and new (hierarchical chapters/modules) structures.
  */
 export interface SuperblockData {
+  readonly name: string;
   readonly dashedName: string;
 
   // Flattened view (all blocks from all chapters/modules)
