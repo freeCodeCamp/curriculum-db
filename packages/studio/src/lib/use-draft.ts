@@ -19,7 +19,7 @@ export interface UseDraftReturn<T> {
   hasUnsavedChanges: boolean;
   isDraftOutdated: boolean;
   currentPatch: Operation[];
-  save: () => void;
+  save: () => 'saved' | 'no_changes' | 'no_data';
   discard: () => void;
   getExportData: () => string | null;
   importPatchData: (json: string) => void;
@@ -57,13 +57,13 @@ export function useDraft<T>(
     setHasUnsavedChanges(true);
   }, []);
 
-  const save = useCallback(() => {
-    if (!original || !edited) return;
+  const save = useCallback((): 'saved' | 'no_changes' | 'no_data' => {
+    if (!original || !edited) return 'no_data';
     const patch = compare(
       original as Record<string, unknown>,
       edited as Record<string, unknown>
     );
-    if (patch.length === 0) return;
+    if (patch.length === 0) return 'no_changes';
     const record = {
       updatedAt: new Date().toISOString(),
       originalHash: hashObject(original),
@@ -72,6 +72,7 @@ export function useDraft<T>(
     localStorage.setItem(getDraftKey(type, id), JSON.stringify(record));
     setHasSavedDraft(true);
     setHasUnsavedChanges(false);
+    return 'saved';
   }, [original, edited, type, id]);
 
   const discard = useCallback(() => {

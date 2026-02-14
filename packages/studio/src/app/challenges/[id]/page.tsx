@@ -1,6 +1,6 @@
 'use client';
 
-import { use } from 'react';
+import { use, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useQuery } from 'urql';
 import { CHALLENGE_DETAIL_QUERY } from '@/graphql/queries';
@@ -10,6 +10,11 @@ import { validateChallengeTitle } from '@/lib/validation';
 import { Breadcrumbs } from '@/components/breadcrumbs';
 import { DraftIndicator } from '@/components/draft-indicator';
 import { Button } from '@/components/ui/button';
+import { ConfirmModal } from '@/components/ui/confirm-modal';
+import {
+  FlashMessage,
+  type FlashMessageVariant,
+} from '@/components/ui/flash-message';
 import { Input } from '@/components/ui/input';
 import { Card, CardHeader, CardContent } from '@/components/ui/card';
 import { Save, Undo2 } from 'lucide-react';
@@ -27,8 +32,23 @@ export default function ChallengeDetailPage({
 
   const original = result.data?.challenge ?? undefined;
   const draft = useDraft<ChallengeDetail>('challenge', id, original);
+  const flashTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [flashMessage, setFlashMessage] = useState<{
+    text: string;
+    variant: FlashMessageVariant;
+  } | null>(null);
+  const [isDiscardModalOpen, setIsDiscardModalOpen] = useState(false);
 
   const { fetching, error: queryError } = result;
+
+  useEffect(
+    () => () => {
+      if (flashTimeoutRef.current) {
+        clearTimeout(flashTimeoutRef.current);
+      }
+    },
+    []
+  );
 
   if (fetching) {
     return (
@@ -57,9 +77,47 @@ export default function ChallengeDetailPage({
   const challenge = draft.edited;
   const titleErrors = validateChallengeTitle(challenge.title);
 
+  function clearFlashMessage() {
+    if (flashTimeoutRef.current) {
+      clearTimeout(flashTimeoutRef.current);
+      flashTimeoutRef.current = null;
+    }
+    setFlashMessage(null);
+  }
+
+  function showFlashMessage(
+    text: string,
+    variant: FlashMessageVariant = 'success'
+  ) {
+    if (flashTimeoutRef.current) {
+      clearTimeout(flashTimeoutRef.current);
+      flashTimeoutRef.current = null;
+    }
+
+    setFlashMessage({ text, variant });
+    flashTimeoutRef.current = setTimeout(() => {
+      setFlashMessage(null);
+      flashTimeoutRef.current = null;
+    }, 2500);
+  }
+
   function handleSave() {
+    clearFlashMessage();
+
     if (titleErrors.length > 0) return;
-    draft.save();
+
+    const saveResult = draft.save();
+    if (saveResult === 'saved') {
+      showFlashMessage('Draft saved locally.', 'success');
+    } else if (saveResult === 'no_changes') {
+      showFlashMessage('No active changes to save.', 'info');
+    }
+  }
+
+  function handleDiscardConfirm() {
+    draft.discard();
+    setIsDiscardModalOpen(false);
+    showFlashMessage('Draft changes discarded.', 'info');
   }
 
   return (
@@ -145,11 +203,25 @@ export default function ChallengeDetailPage({
           <Save className="h-4 w-4" />
           Save Draft
         </Button>
-        <Button variant="outline" onClick={draft.discard}>
+        <Button variant="outline" onClick={() => setIsDiscardModalOpen(true)}>
           <Undo2 className="h-4 w-4" />
           Discard Changes
         </Button>
       </div>
+
+      <ConfirmModal
+        open={isDiscardModalOpen}
+        title="Discard draft changes?"
+        description="This removes your local draft and restores the current server version in the editor."
+        confirmLabel="Discard Changes"
+        onCancel={() => setIsDiscardModalOpen(false)}
+        onConfirm={handleDiscardConfirm}
+      />
+
+      <FlashMessage
+        message={flashMessage?.text ?? null}
+        variant={flashMessage?.variant}
+      />
     </div>
   );
 }

@@ -1,25 +1,96 @@
 'use client';
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useQuery } from 'urql';
-import { SUPERBLOCKS_QUERY } from '@/graphql/queries';
-import type { SuperblockListResult } from '@/graphql/types';
+import { SIDEBAR_NAV_QUERY } from '@/graphql/queries';
+import type {
+  SidebarNavResult,
+  SidebarSuperblockListItem,
+} from '@/graphql/types';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
-import { BookOpen, FileText, Search } from 'lucide-react';
+import {
+  buildSidebarTree,
+  filterSidebarTree,
+  type SidebarModuleNode,
+} from '@/lib/sidebar-nav';
+import { BookOpen, ChevronRight, FileText, Search } from 'lucide-react';
+
+const HIDDEN_SUPERBLOCKS = new Set(['full-stack-open']);
 
 export function Sidebar() {
   const [search, setSearch] = useState('');
-  const [result] = useQuery<SuperblockListResult>({
-    query: SUPERBLOCKS_QUERY,
+  const [expandedCertifications, setExpandedCertifications] = useState<
+    Record<string, boolean>
+  >({});
+  const [expandedChapters, setExpandedChapters] = useState<
+    Record<string, boolean>
+  >({});
+  const [result] = useQuery<SidebarNavResult>({
+    query: SIDEBAR_NAV_QUERY,
   });
   const pathname = usePathname();
 
-  const superblocks = result.data?.superblocks ?? [];
-  const filtered = superblocks.filter((sb) =>
-    sb.name.toLowerCase().includes(search.toLowerCase())
+  const sidebarTree = useMemo(
+    () => buildSidebarTree(result.data, HIDDEN_SUPERBLOCKS),
+    [result.data]
+  );
+  const filteredTree = useMemo(
+    () => filterSidebarTree(sidebarTree, search),
+    [sidebarTree, search]
+  );
+  const normalizedSearch = search.trim().toLowerCase();
+
+  const hasNoMatches =
+    !result.fetching &&
+    !result.error &&
+    filteredTree.certifications.length === 0 &&
+    filteredTree.otherSuperblocks.length === 0;
+
+  const isSuperblockActive = (dashedName: string) =>
+    pathname === `/superblocks/${dashedName}`;
+  const isModuleActive = (dashedName: string) =>
+    pathname === `/modules/${dashedName}`;
+
+  const renderSuperblockLink = (
+    superblock: SidebarSuperblockListItem,
+    className?: string
+  ) => (
+    <Link
+      key={superblock.dashedName}
+      href={`/superblocks/${superblock.dashedName}`}
+      className={cn(
+        'flex items-center justify-between rounded-md px-3 py-2 text-sm transition-colors hover:bg-accent',
+        isSuperblockActive(superblock.dashedName) && 'bg-accent',
+        className
+      )}
+    >
+      <span className="truncate">{superblock.name}</span>
+      {superblock.isCertification && (
+        <Badge variant="secondary" className="ml-2 shrink-0">
+          Cert
+        </Badge>
+      )}
+    </Link>
+  );
+
+  const renderModuleItem = (module: SidebarModuleNode, className?: string) => (
+    <Link
+      key={module.id}
+      href={`/modules/${module.dashedName}?superblock=${module.superblockDashedName}&chapter=${module.chapterDashedName}`}
+      className={cn(
+        'flex items-center justify-between rounded-md px-3 py-2 text-sm transition-colors hover:bg-accent',
+        isModuleActive(module.dashedName) && 'bg-accent',
+        className
+      )}
+    >
+      <span className="truncate">{module.name}</span>
+      <span className="ml-2 shrink-0 text-xs text-muted-foreground">
+        {module.blockCount} block{module.blockCount === 1 ? '' : 's'}
+      </span>
+    </Link>
   );
 
   return (
@@ -38,7 +109,7 @@ export function Sidebar() {
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search superblocks..."
+            placeholder="Search certifications and superblocks..."
             className="w-full rounded-md border border-border bg-background py-2 pl-9 pr-3 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20"
           />
         </div>
@@ -53,23 +124,147 @@ export function Sidebar() {
             Failed to load superblocks
           </p>
         )}
-        {filtered.map((sb) => (
-          <Link
-            key={sb.dashedName}
-            href={`/superblocks/${sb.dashedName}`}
-            className={cn(
-              'flex items-center justify-between rounded-md px-3 py-2 text-sm transition-colors hover:bg-accent',
-              pathname === `/superblocks/${sb.dashedName}` && 'bg-accent'
+
+        {filteredTree.certifications.length > 0 && (
+          <>
+            <p className="px-3 py-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+              Certifications
+            </p>
+            {filteredTree.certifications.map((certification) => {
+              const hasActiveDescendant =
+                certification.structure === 'chaptered'
+                  ? isSuperblockActive(certification.dashedName) ||
+                    certification.visibleChapters.some((chapter) =>
+                      chapter.visibleModules.some((module) =>
+                        isModuleActive(module.dashedName)
+                      )
+                    )
+                  : certification.visibleSuperblocks.some((superblock) =>
+                      isSuperblockActive(superblock.dashedName)
+                    );
+
+              const isExpanded =
+                normalizedSearch.length > 0
+                  ? true
+                  : (expandedCertifications[certification.id] ??
+                    hasActiveDescendant);
+
+              return (
+                <div key={certification.id} className="mb-1">
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setExpandedCertifications((prev) => ({
+                        ...prev,
+                        [certification.id]: !(
+                          prev[certification.id] ?? hasActiveDescendant
+                        ),
+                      }))
+                    }
+                    className={cn(
+                      'flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm transition-colors hover:bg-accent',
+                      hasActiveDescendant && 'bg-accent'
+                    )}
+                  >
+                    <ChevronRight
+                      className={cn(
+                        'h-4 w-4 shrink-0 text-muted-foreground transition-transform',
+                        isExpanded && 'rotate-90'
+                      )}
+                    />
+                    <div className="min-w-0 text-left">
+                      <p className="truncate font-medium">
+                        {certification.name}
+                      </p>
+                      <p className="truncate text-xs text-muted-foreground">
+                        {certification.structure === 'chaptered'
+                          ? 'Chapter based'
+                          : 'Superblock based'}
+                      </p>
+                    </div>
+                  </button>
+
+                  {isExpanded && certification.structure === 'chaptered' && (
+                    <div className="mt-1 space-y-1 pl-5">
+                      {certification.visibleChapters.map((chapter) => {
+                        const hasActiveModule = chapter.visibleModules.some(
+                          (module) => isModuleActive(module.dashedName)
+                        );
+                        const chapterExpanded =
+                          normalizedSearch.length > 0
+                            ? true
+                            : (expandedChapters[chapter.id] ?? hasActiveModule);
+
+                        return (
+                          <div key={chapter.id} className="mb-1">
+                            <button
+                              type="button"
+                              onClick={() =>
+                                setExpandedChapters((prev) => ({
+                                  ...prev,
+                                  [chapter.id]: !(
+                                    prev[chapter.id] ?? hasActiveModule
+                                  ),
+                                }))
+                              }
+                              className={cn(
+                                'flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm transition-colors hover:bg-accent',
+                                hasActiveModule && 'bg-accent'
+                              )}
+                            >
+                              <ChevronRight
+                                className={cn(
+                                  'h-4 w-4 shrink-0 text-muted-foreground transition-transform',
+                                  chapterExpanded && 'rotate-90'
+                                )}
+                              />
+                              <span className="truncate text-left">
+                                {chapter.name}
+                              </span>
+                            </button>
+
+                            {chapterExpanded && (
+                              <div className="mt-1 space-y-1 pl-5">
+                                {chapter.visibleModules.map((module) =>
+                                  renderModuleItem(module)
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+
+                  {isExpanded && certification.structure === 'superblocks' && (
+                    <div className="mt-1 space-y-1 pl-5">
+                      {certification.visibleSuperblocks.map((superblock) =>
+                        renderSuperblockLink(superblock)
+                      )}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </>
+        )}
+
+        {filteredTree.otherSuperblocks.length > 0 && (
+          <>
+            <p className="mt-2 px-3 py-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+              Superblocks
+            </p>
+            {filteredTree.otherSuperblocks.map((superblock) =>
+              renderSuperblockLink(superblock)
             )}
-          >
-            <span className="truncate">{sb.name}</span>
-            {sb.isCertification && (
-              <Badge variant="secondary" className="ml-2 shrink-0">
-                Cert
-              </Badge>
-            )}
-          </Link>
-        ))}
+          </>
+        )}
+
+        {hasNoMatches && (
+          <p className="px-3 py-2 text-sm text-muted-foreground">
+            No matches found
+          </p>
+        )}
       </nav>
 
       <div className="border-t border-border p-2">

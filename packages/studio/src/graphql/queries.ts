@@ -10,6 +10,27 @@ export const SUPERBLOCKS_QUERY = gql`
   }
 `;
 
+export const SIDEBAR_NAV_QUERY = gql`
+  query SidebarNav {
+    curriculum {
+      superblocks
+      certifications
+    }
+    superblocks {
+      name
+      dashedName
+      isCertification
+      chapters {
+        dashedName
+        modules {
+          dashedName
+          blocks
+        }
+      }
+    }
+  }
+`;
+
 export const CURRICULUM_OVERVIEW_QUERY = gql`
   query CurriculumOverview {
     curriculum {
@@ -42,6 +63,39 @@ export const SUPERBLOCK_DETAIL_QUERY = gql`
         blockLayout
         blockLabel
         isUpcomingChange
+      }
+    }
+  }
+`;
+
+export const MODULE_DETAIL_QUERY = gql`
+  query ModuleDetail(
+    $superblockDashedName: String
+    $chapterDashedName: String
+  ) {
+    modules(
+      superblockDashedName: $superblockDashedName
+      chapterDashedName: $chapterDashedName
+    ) {
+      dashedName
+      moduleType
+      comingSoon
+      blocks
+      blockObjects {
+        name
+        dashedName
+        helpCategory
+        blockLayout
+        blockLabel
+        isUpcomingChange
+      }
+      chapter {
+        dashedName
+        superblock {
+          name
+          dashedName
+          isCertification
+        }
       }
     }
   }

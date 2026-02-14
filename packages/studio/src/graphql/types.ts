@@ -48,12 +48,46 @@ export interface SuperblockListItem {
   isCertification: boolean;
 }
 
+export interface SidebarChapterListItem {
+  dashedName: string;
+  modules: SidebarModuleListItem[];
+}
+
+export interface SidebarModuleListItem {
+  dashedName: string;
+  blocks: string[];
+}
+
+export interface SidebarSuperblockListItem extends SuperblockListItem {
+  chapters: SidebarChapterListItem[];
+}
+
+export interface SidebarNavResult {
+  curriculum: {
+    superblocks: string[];
+    certifications: string[];
+  };
+  superblocks: SidebarSuperblockListItem[];
+}
+
 export interface SuperblockDetail {
   name: string;
   dashedName: string;
   isCertification: boolean;
   blocks: string[];
   blockObjects: BlockListItem[];
+}
+
+export interface ModuleDetail {
+  dashedName: string;
+  moduleType: string | null;
+  comingSoon: boolean;
+  blocks: string[];
+  blockObjects: BlockListItem[];
+  chapter: {
+    dashedName: string;
+    superblock: SuperblockListItem;
+  };
 }
 
 export interface BlockListItem {
@@ -113,6 +147,10 @@ export interface SuperblockListResult {
 
 export interface SuperblockDetailResult {
   superblock: SuperblockDetail | null;
+}
+
+export interface ModuleDetailResult {
+  modules: ModuleDetail[];
 }
 
 export interface BlockDetailResult {

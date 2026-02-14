@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, use } from 'react';
+import { useState, useRef, use, useEffect } from 'react';
 import Link from 'next/link';
 import { useQuery } from 'urql';
 import { BLOCK_DETAIL_QUERY } from '@/graphql/queries';
@@ -13,6 +13,11 @@ import { DraftIndicator } from '@/components/draft-indicator';
 import { DiffViewer } from '@/components/diff-viewer';
 import { ChallengeTable } from '@/components/challenge-table';
 import { Button } from '@/components/ui/button';
+import { ConfirmModal } from '@/components/ui/confirm-modal';
+import {
+  FlashMessage,
+  type FlashMessageVariant,
+} from '@/components/ui/flash-message';
 import { Input } from '@/components/ui/input';
 import { Select } from '@/components/ui/select';
 import { Card, CardHeader, CardContent } from '@/components/ui/card';
@@ -36,8 +41,23 @@ export default function BlockDetailPage({
   const [showDiff, setShowDiff] = useState(false);
   const [errors, setErrors] = useState<ValidationError[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const flashTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [flashMessage, setFlashMessage] = useState<{
+    text: string;
+    variant: FlashMessageVariant;
+  } | null>(null);
+  const [isDiscardModalOpen, setIsDiscardModalOpen] = useState(false);
 
   const { data, fetching, error: queryError } = result;
+
+  useEffect(
+    () => () => {
+      if (flashTimeoutRef.current) {
+        clearTimeout(flashTimeoutRef.current);
+      }
+    },
+    []
+  );
 
   if (fetching) {
     return (
@@ -70,14 +90,47 @@ export default function BlockDetailPage({
     return errors.find((e) => e.field === field)?.message;
   }
 
+  function clearFlashMessage() {
+    if (flashTimeoutRef.current) {
+      clearTimeout(flashTimeoutRef.current);
+      flashTimeoutRef.current = null;
+    }
+    setFlashMessage(null);
+  }
+
+  function showFlashMessage(
+    text: string,
+    variant: FlashMessageVariant = 'success'
+  ) {
+    if (flashTimeoutRef.current) {
+      clearTimeout(flashTimeoutRef.current);
+      flashTimeoutRef.current = null;
+    }
+
+    setFlashMessage({ text, variant });
+    flashTimeoutRef.current = setTimeout(() => {
+      setFlashMessage(null);
+      flashTimeoutRef.current = null;
+    }, 2500);
+  }
+
   function handleSave() {
+    clearFlashMessage();
+
     const validationErrors = validateBlock(block);
     setErrors(validationErrors);
     if (validationErrors.length > 0) return;
-    draft.save();
+
+    const saveResult = draft.save();
+    if (saveResult === 'saved') {
+      showFlashMessage('Draft saved locally.', 'success');
+    } else if (saveResult === 'no_changes') {
+      showFlashMessage('No active changes to save.', 'info');
+    }
   }
 
   function handleExport() {
+    if (draft.currentPatch.length === 0) return;
     const json = draft.getExportData();
     if (!json) return;
     const blob = new Blob([json], { type: 'application/json' });
@@ -100,12 +153,20 @@ export default function BlockDetailPage({
     e.target.value = '';
   }
 
+  function handleDiscardConfirm() {
+    draft.discard();
+    setErrors([]);
+    setIsDiscardModalOpen(false);
+    showFlashMessage('Draft changes discarded.', 'info');
+  }
+
   const titleErrors = new Map<string, string>();
   for (const err of errors) {
     if (err.field.startsWith('challenge:')) {
       titleErrors.set(err.field.replace('challenge:', ''), err.message);
     }
   }
+  const hasActiveChanges = draft.currentPatch.length > 0;
 
   return (
     <div className="p-8 max-w-5xl">
@@ -280,13 +341,7 @@ export default function BlockDetailPage({
           <Save className="h-4 w-4" />
           Save Draft
         </Button>
-        <Button
-          variant="outline"
-          onClick={() => {
-            draft.discard();
-            setErrors([]);
-          }}
-        >
+        <Button variant="outline" onClick={() => setIsDiscardModalOpen(true)}>
           <Undo2 className="h-4 w-4" />
           Discard Changes
         </Button>
@@ -294,7 +349,11 @@ export default function BlockDetailPage({
           <Eye className="h-4 w-4" />
           {showDiff ? 'Hide Diff' : 'View Diff'}
         </Button>
-        <Button variant="outline" onClick={handleExport}>
+        <Button
+          variant="outline"
+          onClick={handleExport}
+          disabled={!hasActiveChanges}
+        >
           <Download className="h-4 w-4" />
           Export Patch
         </Button>
@@ -333,6 +392,20 @@ export default function BlockDetailPage({
           />
         </div>
       )}
+
+      <ConfirmModal
+        open={isDiscardModalOpen}
+        title="Discard draft changes?"
+        description="This removes your local draft and restores the current server version in the editor."
+        confirmLabel="Discard Changes"
+        onCancel={() => setIsDiscardModalOpen(false)}
+        onConfirm={handleDiscardConfirm}
+      />
+
+      <FlashMessage
+        message={flashMessage?.text ?? null}
+        variant={flashMessage?.variant}
+      />
     </div>
   );
 }
