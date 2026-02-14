@@ -1,8 +1,6 @@
 'use client';
 
-import { use } from 'react';
 import Link from 'next/link';
-import { useSearchParams } from 'next/navigation';
 import { useQuery } from 'urql';
 import { MODULE_DETAIL_QUERY } from '@/graphql/queries';
 import type { ModuleDetailResult } from '@/graphql/types';
@@ -23,33 +21,32 @@ function formatDashedNameLabel(dashedName: string): string {
     .join(' ');
 }
 
-export default function ModuleDetailPage({
-  params,
-}: {
-  params: Promise<{ dashedName: string }>;
-}) {
-  const { dashedName } = use(params);
-  const searchParams = useSearchParams();
-  const selectedSuperblock = searchParams.get('superblock');
-  const selectedChapter = searchParams.get('chapter');
+interface ModuleDetailPageProps {
+  superblockDashedName: string;
+  chapterDashedName: string;
+  moduleDashedName: string;
+}
 
+export function ModuleDetailPage({
+  superblockDashedName,
+  chapterDashedName,
+  moduleDashedName,
+}: ModuleDetailPageProps) {
   const [result] = useQuery<ModuleDetailResult>({
     query: MODULE_DETAIL_QUERY,
     variables: {
-      superblockDashedName: selectedSuperblock || undefined,
-      chapterDashedName: selectedChapter || undefined,
+      superblockDashedName,
+      chapterDashedName,
     },
   });
 
   const matches = (result.data?.modules ?? []).filter(
-    (module) => module.dashedName === dashedName
+    (module) => module.dashedName === moduleDashedName
   );
   const moduleMatch = matches[0] ?? null;
   const totalMatches = matches.length;
-  const fetching = result.fetching;
-  const error = result.error;
 
-  if (fetching) {
+  if (result.fetching) {
     return (
       <div className="p-8">
         <p className="text-muted-foreground">Loading module...</p>
@@ -57,10 +54,10 @@ export default function ModuleDetailPage({
     );
   }
 
-  if (error) {
+  if (result.error) {
     return (
       <div className="p-8">
-        <p className="text-destructive">Error: {error.message}</p>
+        <p className="text-destructive">Error: {result.error.message}</p>
       </div>
     );
   }

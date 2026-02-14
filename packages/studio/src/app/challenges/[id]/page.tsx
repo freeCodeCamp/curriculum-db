@@ -76,6 +76,7 @@ export default function ChallengeDetailPage({
 
   const challenge = draft.edited;
   const titleErrors = validateChallengeTitle(challenge.title);
+  const challengeContent = challenge.content;
 
   function clearFlashMessage() {
     if (flashTimeoutRef.current) {
@@ -186,15 +187,79 @@ export default function ChallengeDetailPage({
           <h2 className="font-semibold">Content</h2>
         </CardHeader>
         <CardContent>
-          <div className="rounded-md bg-muted/50 px-4 py-8 text-center">
-            <p className="text-muted-foreground">
-              Content not available in MVP
-            </p>
-            <p className="mt-1 text-xs text-muted-foreground">
-              Challenge content (description, instructions, tests) will be
-              available in a future version.
-            </p>
-          </div>
+          {challengeContent ? (
+            <div className="space-y-4 text-sm">
+              <section>
+                <h3 className="font-medium">Description</h3>
+                <p className="mt-1 whitespace-pre-wrap text-muted-foreground">
+                  {challengeContent.description}
+                </p>
+              </section>
+
+              <section>
+                <h3 className="font-medium">Instructions</h3>
+                <p className="mt-1 whitespace-pre-wrap text-muted-foreground">
+                  {challengeContent.instructions}
+                </p>
+              </section>
+
+              <section>
+                <h3 className="font-medium">Starter Files</h3>
+                {challengeContent.files.length === 0 ? (
+                  <p className="mt-1 text-muted-foreground">No starter files</p>
+                ) : (
+                  <ul className="mt-1 space-y-1 text-muted-foreground">
+                    {challengeContent.files.map((file) => (
+                      <li
+                        key={`${file.name}.${file.ext}`}
+                        className="font-mono"
+                      >
+                        {file.name}.{file.ext}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </section>
+
+              <section>
+                <h3 className="font-medium">Tests</h3>
+                {challengeContent.tests.length === 0 ? (
+                  <p className="mt-1 text-muted-foreground">No tests</p>
+                ) : (
+                  <ul className="mt-1 space-y-1 text-muted-foreground">
+                    {challengeContent.tests.slice(0, 10).map((test, index) => (
+                      <li key={`${index}-${test.text}`}>
+                        {index + 1}. {test.text}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+                {challengeContent.tests.length > 10 && (
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    Showing 10 of {challengeContent.tests.length} tests
+                  </p>
+                )}
+              </section>
+
+              <section>
+                <h3 className="font-medium">Solutions</h3>
+                <p className="mt-1 text-muted-foreground">
+                  {challengeContent.solutions.length} solution
+                  {challengeContent.solutions.length === 1 ? '' : 's'}
+                </p>
+              </section>
+            </div>
+          ) : (
+            <div className="rounded-md bg-muted/50 px-4 py-8 text-center">
+              <p className="text-muted-foreground">
+                Content not available in MVP
+              </p>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Challenge content (description, instructions, tests) will be
+                available in a future version.
+              </p>
+            </div>
+          )}
         </CardContent>
       </Card>
 

@@ -135,6 +135,20 @@ export const CHALLENGE_DETAIL_QUERY = gql`
       }
       content {
         description
+        instructions
+        files {
+          name
+          ext
+        }
+        tests {
+          text
+        }
+        solutions {
+          files {
+            name
+            ext
+          }
+        }
       }
     }
   }

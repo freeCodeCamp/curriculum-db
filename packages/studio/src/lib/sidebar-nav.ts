@@ -14,6 +14,12 @@ export interface SidebarModuleNode {
   chapterDashedName: string;
 }
 
+export interface ModuleRouteKey {
+  superblockDashedName: string;
+  chapterDashedName: string;
+  moduleDashedName: string;
+}
+
 export interface SidebarChapterNode {
   id: string;
   dashedName: string;
@@ -69,6 +75,14 @@ function formatDashedNameLabel(dashedName: string): string {
 
 function matchesSearch(value: string, normalizedSearch: string): boolean {
   return value.toLowerCase().includes(normalizedSearch);
+}
+
+export function getModuleHref({
+  superblockDashedName,
+  chapterDashedName,
+  moduleDashedName,
+}: ModuleRouteKey): string {
+  return `/superblocks/${superblockDashedName}/chapters/${chapterDashedName}/modules/${moduleDashedName}`;
 }
 
 export function buildSidebarTree(

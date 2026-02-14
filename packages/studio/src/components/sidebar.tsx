@@ -14,6 +14,7 @@ import { cn } from '@/lib/utils';
 import {
   buildSidebarTree,
   filterSidebarTree,
+  getModuleHref,
   type SidebarModuleNode,
 } from '@/lib/sidebar-nav';
 import { BookOpen, ChevronRight, FileText, Search } from 'lucide-react';
@@ -51,8 +52,13 @@ export function Sidebar() {
 
   const isSuperblockActive = (dashedName: string) =>
     pathname === `/superblocks/${dashedName}`;
-  const isModuleActive = (dashedName: string) =>
-    pathname === `/modules/${dashedName}`;
+  const isModuleActive = (module: SidebarModuleNode) =>
+    pathname ===
+    getModuleHref({
+      superblockDashedName: module.superblockDashedName,
+      chapterDashedName: module.chapterDashedName,
+      moduleDashedName: module.dashedName,
+    });
 
   const renderSuperblockLink = (
     superblock: SidebarSuperblockListItem,
@@ -79,10 +85,14 @@ export function Sidebar() {
   const renderModuleItem = (module: SidebarModuleNode, className?: string) => (
     <Link
       key={module.id}
-      href={`/modules/${module.dashedName}?superblock=${module.superblockDashedName}&chapter=${module.chapterDashedName}`}
+      href={getModuleHref({
+        superblockDashedName: module.superblockDashedName,
+        chapterDashedName: module.chapterDashedName,
+        moduleDashedName: module.dashedName,
+      })}
       className={cn(
         'flex items-center justify-between rounded-md px-3 py-2 text-sm transition-colors hover:bg-accent',
-        isModuleActive(module.dashedName) && 'bg-accent',
+        isModuleActive(module) && 'bg-accent',
         className
       )}
     >
@@ -136,7 +146,7 @@ export function Sidebar() {
                   ? isSuperblockActive(certification.dashedName) ||
                     certification.visibleChapters.some((chapter) =>
                       chapter.visibleModules.some((module) =>
-                        isModuleActive(module.dashedName)
+                        isModuleActive(module)
                       )
                     )
                   : certification.visibleSuperblocks.some((superblock) =>
@@ -188,7 +198,7 @@ export function Sidebar() {
                     <div className="mt-1 space-y-1 pl-5">
                       {certification.visibleChapters.map((chapter) => {
                         const hasActiveModule = chapter.visibleModules.some(
-                          (module) => isModuleActive(module.dashedName)
+                          (module) => isModuleActive(module)
                         );
                         const chapterExpanded =
                           normalizedSearch.length > 0

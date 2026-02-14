@@ -1,12 +1,18 @@
-export type BlockLayout =
-  | 'LINK'
-  | 'CHALLENGE_LIST'
-  | 'CHALLENGE_GRID'
-  | 'DIALOGUE_GRID'
-  | 'PROJECT_LIST'
-  | 'LEGACY_CHALLENGE_LIST'
-  | 'LEGACY_CHALLENGE_GRID'
-  | 'LEGACY_LINK';
+import type {
+  BlockDetailQuery,
+  BlockLabel as GeneratedBlockLabel,
+  BlockLayout as GeneratedBlockLayout,
+  ChallengeDetailQuery,
+  CurriculumOverviewQuery,
+  ModuleDetailQuery,
+  SidebarNavQuery,
+  SuperblockDetailQuery,
+  SuperblocksQuery,
+} from './generated/graphql';
+
+type NonNull<T> = NonNullable<T>;
+
+export type BlockLayout = GeneratedBlockLayout;
 
 export const BLOCK_LAYOUTS: BlockLayout[] = [
   'LINK',
@@ -19,16 +25,7 @@ export const BLOCK_LAYOUTS: BlockLayout[] = [
   'LEGACY_LINK',
 ];
 
-export type BlockLabel =
-  | 'LECTURE'
-  | 'LAB'
-  | 'WORKSHOP'
-  | 'REVIEW'
-  | 'QUIZ'
-  | 'EXAM'
-  | 'WARM_UP'
-  | 'PRACTICE'
-  | 'LEARN';
+export type BlockLabel = GeneratedBlockLabel;
 
 export const BLOCK_LABELS: BlockLabel[] = [
   'LECTURE',
@@ -42,121 +39,27 @@ export const BLOCK_LABELS: BlockLabel[] = [
   'LEARN',
 ];
 
-export interface SuperblockListItem {
-  name: string;
-  dashedName: string;
-  isCertification: boolean;
-}
+export type SuperblockListItem = SuperblocksQuery['superblocks'][number];
+export type SidebarSuperblockListItem = SidebarNavQuery['superblocks'][number];
+export type SidebarChapterListItem =
+  SidebarSuperblockListItem['chapters'][number];
+export type SidebarModuleListItem = SidebarChapterListItem['modules'][number];
+export type SidebarNavResult = SidebarNavQuery;
 
-export interface SidebarChapterListItem {
-  dashedName: string;
-  modules: SidebarModuleListItem[];
-}
+export type SuperblockDetail = NonNull<SuperblockDetailQuery['superblock']>;
+export type ModuleDetail = ModuleDetailQuery['modules'][number];
+export type BlockListItem = SuperblockDetail['blockObjects'][number];
 
-export interface SidebarModuleListItem {
-  dashedName: string;
-  blocks: string[];
-}
+export type BlockDetail = NonNull<BlockDetailQuery['block']>;
+export type SuperblockRef = BlockDetail['superblocks'][number];
+export type ChallengeOrderEntry = BlockDetail['challengeOrder'][number];
 
-export interface SidebarSuperblockListItem extends SuperblockListItem {
-  chapters: SidebarChapterListItem[];
-}
+export type ChallengeDetail = NonNull<ChallengeDetailQuery['challenge']>;
+export type ChallengeContent = NonNull<ChallengeDetail['content']>;
 
-export interface SidebarNavResult {
-  curriculum: {
-    superblocks: string[];
-    certifications: string[];
-  };
-  superblocks: SidebarSuperblockListItem[];
-}
-
-export interface SuperblockDetail {
-  name: string;
-  dashedName: string;
-  isCertification: boolean;
-  blocks: string[];
-  blockObjects: BlockListItem[];
-}
-
-export interface ModuleDetail {
-  dashedName: string;
-  moduleType: string | null;
-  comingSoon: boolean;
-  blocks: string[];
-  blockObjects: BlockListItem[];
-  chapter: {
-    dashedName: string;
-    superblock: SuperblockListItem;
-  };
-}
-
-export interface BlockListItem {
-  name: string;
-  dashedName: string;
-  helpCategory: string;
-  blockLayout: BlockLayout;
-  blockLabel: BlockLabel | null;
-  isUpcomingChange: boolean;
-}
-
-export interface BlockDetail {
-  name: string;
-  dashedName: string;
-  helpCategory: string;
-  blockLayout: BlockLayout;
-  blockLabel: BlockLabel | null;
-  isUpcomingChange: boolean;
-  usesMultifileEditor: boolean | null;
-  hasEditableBoundaries: boolean | null;
-  challengeOrder: ChallengeOrderEntry[];
-  superblocks: SuperblockRef[];
-}
-
-export interface SuperblockRef {
-  name: string;
-  dashedName: string;
-}
-
-export interface ChallengeOrderEntry {
-  id: string;
-  title: string;
-}
-
-export interface ChallengeDetail {
-  id: string;
-  title: string;
-  block: {
-    name: string;
-    dashedName: string;
-  };
-  content: { description: string } | null;
-}
-
-export interface CurriculumOverviewResult {
-  curriculum: {
-    superblocks: string[];
-    certifications: string[];
-  };
-  superblocks: Array<SuperblockListItem & { blocks: string[] }>;
-  certifications: Array<{ dashedName: string }>;
-}
-
-export interface SuperblockListResult {
-  superblocks: SuperblockListItem[];
-}
-
-export interface SuperblockDetailResult {
-  superblock: SuperblockDetail | null;
-}
-
-export interface ModuleDetailResult {
-  modules: ModuleDetail[];
-}
-
-export interface BlockDetailResult {
-  block: BlockDetail | null;
-}
-
-export interface ChallengeDetailResult {
-  challenge: ChallengeDetail | null;
-}
+export type CurriculumOverviewResult = CurriculumOverviewQuery;
+export type SuperblockListResult = SuperblocksQuery;
+export type SuperblockDetailResult = SuperblockDetailQuery;
+export type ModuleDetailResult = ModuleDetailQuery;
+export type BlockDetailResult = BlockDetailQuery;
+export type ChallengeDetailResult = ChallengeDetailQuery;
