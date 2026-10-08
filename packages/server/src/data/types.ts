@@ -125,7 +125,7 @@ export interface RawSuperblock {
  * All enum values remain as kebab-case string literals.
  */
 export interface RawBlock {
-  readonly name: string;
+  readonly name?: string;
   readonly dashedName: string;
   readonly helpCategory: string;
   readonly challengeOrder: readonly RawChallenge[];
