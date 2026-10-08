@@ -210,7 +210,7 @@ export function normalizeBlock(
   superblockDashedNames: readonly string[]
 ): BlockData {
   return {
-    name: raw.name,
+    name: raw.name ?? dashedNameToTitle(dashedName),
     dashedName,
     helpCategory: raw.helpCategory,
     challenges: raw.challengeOrder.map((ch) =>
