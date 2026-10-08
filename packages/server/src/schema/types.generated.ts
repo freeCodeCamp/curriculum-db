@@ -685,8 +685,8 @@ export type ResolversParentTypes = {
 
 export type BlockResolvers<
   ContextType = DataProvider,
-  ParentType extends
-    ResolversParentTypes['Block'] = ResolversParentTypes['Block'],
+  ParentType extends ResolversParentTypes['Block'] =
+    ResolversParentTypes['Block'],
 > = {
   blockLabel?: Resolver<
     Maybe<ResolversTypes['BlockLabel']>,
@@ -775,8 +775,8 @@ export type BlockLayoutResolvers = EnumResolverSignature<
 
 export type CertificationResolvers<
   ContextType = DataProvider,
-  ParentType extends
-    ResolversParentTypes['Certification'] = ResolversParentTypes['Certification'],
+  ParentType extends ResolversParentTypes['Certification'] =
+    ResolversParentTypes['Certification'],
 > = {
   dashedName?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   superblock?: Resolver<ResolversTypes['Superblock'], ParentType, ContextType>;
@@ -784,8 +784,8 @@ export type CertificationResolvers<
 
 export type ChallengeResolvers<
   ContextType = DataProvider,
-  ParentType extends
-    ResolversParentTypes['Challenge'] = ResolversParentTypes['Challenge'],
+  ParentType extends ResolversParentTypes['Challenge'] =
+    ResolversParentTypes['Challenge'],
 > = {
   block?: Resolver<ResolversTypes['Block'], ParentType, ContextType>;
   content?: Resolver<
@@ -799,8 +799,8 @@ export type ChallengeResolvers<
 
 export type ChallengeContentResolvers<
   ContextType = DataProvider,
-  ParentType extends
-    ResolversParentTypes['ChallengeContent'] = ResolversParentTypes['ChallengeContent'],
+  ParentType extends ResolversParentTypes['ChallengeContent'] =
+    ResolversParentTypes['ChallengeContent'],
 > = {
   description?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   files?: Resolver<
@@ -819,8 +819,8 @@ export type ChallengeContentResolvers<
 
 export type ChallengeFileResolvers<
   ContextType = DataProvider,
-  ParentType extends
-    ResolversParentTypes['ChallengeFile'] = ResolversParentTypes['ChallengeFile'],
+  ParentType extends ResolversParentTypes['ChallengeFile'] =
+    ResolversParentTypes['ChallengeFile'],
 > = {
   contents?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   editableRegionBoundaries?: Resolver<
@@ -834,8 +834,8 @@ export type ChallengeFileResolvers<
 
 export type ChapterResolvers<
   ContextType = DataProvider,
-  ParentType extends
-    ResolversParentTypes['Chapter'] = ResolversParentTypes['Chapter'],
+  ParentType extends ResolversParentTypes['Chapter'] =
+    ResolversParentTypes['Chapter'],
 > = {
   comingSoon?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   dashedName?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
@@ -845,8 +845,8 @@ export type ChapterResolvers<
 
 export type CurriculumResolvers<
   ContextType = DataProvider,
-  ParentType extends
-    ResolversParentTypes['Curriculum'] = ResolversParentTypes['Curriculum'],
+  ParentType extends ResolversParentTypes['Curriculum'] =
+    ResolversParentTypes['Curriculum'],
 > = {
   certifications?: Resolver<
     Array<ResolversTypes['String']>,
@@ -862,8 +862,8 @@ export type CurriculumResolvers<
 
 export type DataStoreMetricsResolvers<
   ContextType = DataProvider,
-  ParentType extends
-    ResolversParentTypes['DataStoreMetrics'] = ResolversParentTypes['DataStoreMetrics'],
+  ParentType extends ResolversParentTypes['DataStoreMetrics'] =
+    ResolversParentTypes['DataStoreMetrics'],
 > = {
   blockCount?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   challengeCount?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
@@ -875,8 +875,8 @@ export type DataStoreMetricsResolvers<
 
 export type HealthCheckResolvers<
   ContextType = DataProvider,
-  ParentType extends
-    ResolversParentTypes['HealthCheck'] = ResolversParentTypes['HealthCheck'],
+  ParentType extends ResolversParentTypes['HealthCheck'] =
+    ResolversParentTypes['HealthCheck'],
 > = {
   dataStore?: Resolver<
     ResolversTypes['DataStoreMetrics'],
@@ -889,8 +889,8 @@ export type HealthCheckResolvers<
 
 export type ModuleResolvers<
   ContextType = DataProvider,
-  ParentType extends
-    ResolversParentTypes['Module'] = ResolversParentTypes['Module'],
+  ParentType extends ResolversParentTypes['Module'] =
+    ResolversParentTypes['Module'],
 > = {
   blockObjects?: Resolver<
     Array<ResolversTypes['Block']>,
@@ -910,8 +910,8 @@ export type ModuleResolvers<
 
 export type QueryResolvers<
   ContextType = DataProvider,
-  ParentType extends
-    ResolversParentTypes['Query'] = ResolversParentTypes['Query'],
+  ParentType extends ResolversParentTypes['Query'] =
+    ResolversParentTypes['Query'],
 > = {
   _health?: Resolver<ResolversTypes['HealthCheck'], ParentType, ContextType>;
   block?: Resolver<
@@ -971,8 +971,8 @@ export type QueryResolvers<
 
 export type RequiredResourceResolvers<
   ContextType = DataProvider,
-  ParentType extends
-    ResolversParentTypes['RequiredResource'] = ResolversParentTypes['RequiredResource'],
+  ParentType extends ResolversParentTypes['RequiredResource'] =
+    ResolversParentTypes['RequiredResource'],
 > = {
   link?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   src?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
@@ -980,8 +980,8 @@ export type RequiredResourceResolvers<
 
 export type SolutionResolvers<
   ContextType = DataProvider,
-  ParentType extends
-    ResolversParentTypes['Solution'] = ResolversParentTypes['Solution'],
+  ParentType extends ResolversParentTypes['Solution'] =
+    ResolversParentTypes['Solution'],
 > = {
   files?: Resolver<
     Array<ResolversTypes['ChallengeFile']>,
@@ -992,8 +992,8 @@ export type SolutionResolvers<
 
 export type SuperblockResolvers<
   ContextType = DataProvider,
-  ParentType extends
-    ResolversParentTypes['Superblock'] = ResolversParentTypes['Superblock'],
+  ParentType extends ResolversParentTypes['Superblock'] =
+    ResolversParentTypes['Superblock'],
 > = {
   blockObjects?: Resolver<
     Array<ResolversTypes['Block']>,
@@ -1017,8 +1017,8 @@ export type SuperblockResolvers<
 
 export type TestResolvers<
   ContextType = DataProvider,
-  ParentType extends
-    ResolversParentTypes['Test'] = ResolversParentTypes['Test'],
+  ParentType extends ResolversParentTypes['Test'] =
+    ResolversParentTypes['Test'],
 > = {
   testString?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   text?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
