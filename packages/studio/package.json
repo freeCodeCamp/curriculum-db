@@ -1,0 +1,42 @@
+{
+  "name": "@freecodecamp/studio",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "next dev --turbopack",
+    "develop": "next dev --turbopack",
+    "build": "next build",
+    "start": "next start",
+    "type-check": "tsc --noEmit",
+    "lint": "oxlint src",
+    "format": "prettier --write src/",
+    "format:check": "prettier --check src/",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "codegen": "graphql-codegen --config codegen.ts"
+  },
+  "dependencies": {
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "fast-json-patch": "^3.1.1",
+    "lucide-react": "^0.474.0",
+    "next": "^15.3.3",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "tailwind-merge": "^3.0.2",
+    "urql": "^5.0.1"
+  },
+  "devDependencies": {
+    "@graphql-codegen/cli": "^6.0.1",
+    "@graphql-codegen/client-preset": "^4.8.2",
+    "@tailwindcss/postcss": "^4.1.8",
+    "@types/node": "^24.9.1",
+    "@types/react": "^19.1.8",
+    "@types/react-dom": "^19.1.6",
+    "graphql": "^16.11.0",
+    "postcss": "^8.5.6",
+    "tailwindcss": "^4.1.8",
+    "typescript": "^5.9.3"
+  }
+}
