@@ -372,6 +372,11 @@ enum BlockLabel {
   General learning block
   """
   LEARN
+
+  """
+  Certification project block
+  """
+  CERT_PROJECT
 }
 
 """

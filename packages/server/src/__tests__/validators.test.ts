@@ -203,6 +203,7 @@ describe('Data Validators', () => {
         'warm-up',
         'practice',
         'learn',
+        'cert-project',
       ];
 
       for (const type of validTypes) {

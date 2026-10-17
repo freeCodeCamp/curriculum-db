@@ -35,6 +35,7 @@ const VALID_BLOCK_LABELS: readonly RawBlockLabel[] = [
   'warm-up',
   'practice',
   'learn',
+  'cert-project',
 ];
 
 /**
