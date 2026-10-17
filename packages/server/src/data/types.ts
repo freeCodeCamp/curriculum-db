@@ -51,7 +51,8 @@ export type RawBlockLabel =
   | 'exam'
   | 'warm-up'
   | 'practice'
-  | 'learn';
+  | 'learn'
+  | 'cert-project';
 
 /**
  * External resource (CDN script or stylesheet) required for challenges.
@@ -176,6 +177,7 @@ export enum BlockLabel {
   WARM_UP = 'WARM_UP',
   PRACTICE = 'PRACTICE',
   LEARN = 'LEARN',
+  CERT_PROJECT = 'CERT_PROJECT',
 }
 
 /**
@@ -382,8 +384,7 @@ export interface ChallengeContent {
  * preventing uncaught exceptions during data loading.
  */
 export type Result<T, E = Error> =
-  | { success: true; data: T }
-  | { success: false; error: E };
+  { success: true; data: T } | { success: false; error: E };
 
 /**
  * Custom error class for data validation failures.

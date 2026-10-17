@@ -46,6 +46,7 @@ const BLOCK_LABEL_MAPPING: Record<RawBlockLabel, BlockLabel> = {
   'warm-up': BlockLabel.WARM_UP,
   practice: BlockLabel.PRACTICE,
   learn: BlockLabel.LEARN,
+  'cert-project': BlockLabel.CERT_PROJECT,
 };
 
 /**
