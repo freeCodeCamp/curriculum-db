@@ -197,3 +197,11 @@ jobs:
           files: ./packages/server/coverage/coverage-final.json
           flags: unittests
           name: codecov-curriculum-db
+
+  ci-gate:
+    name: CI Gate
+    needs: [lint, test]
+    if: always()
+    runs-on: ubuntu-26.04
+    steps:
+      - run: test "${{ needs.lint.result }}" = success && test "${{ needs.test.result }}" = success
