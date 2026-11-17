@@ -30,7 +30,10 @@
   ],
   "author": "Mrugesh Mohapatra <noreply@mrugesh.dev> (https://mrugesh.dev/)",
   "license": "BSD-3-Clause",
-  "packageManager": "pnpm@10.34.9",
+  "engines": {
+    "node": "^22.0.0 || ^24.0.0 || ^26.0.0"
+  },
+  "packageManager": "pnpm@12.21.0",
   "devDependencies": {
     "@types/node": "^24.9.1",
     "@vitest/coverage-v8": "^4.0.4",
