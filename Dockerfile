@@ -8,7 +8,7 @@ FROM node:26-bookworm AS builder
 RUN apt-get update && apt-get install -y git
 
 # Install pnpm globally before switching to node user
-RUN npm i -g pnpm@10
+RUN npm i -g pnpm@12.21.0
 
 # Use the existing node user from the base image
 USER node
@@ -39,7 +39,7 @@ COPY --chown=node:node package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY --chown=node:node packages/server/package.json packages/server/
 
 # Install pnpm globally
-RUN npm i -g pnpm@10
+RUN npm i -g pnpm@12.21.0
 
 # Install only production dependencies (skip prepare scripts like husky)
 RUN pnpm install --prod --frozen-lockfile --ignore-scripts

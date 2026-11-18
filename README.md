@@ -5,6 +5,11 @@ A TypeScript GraphQL API server for freeCodeCamp curriculum metadata, built as a
 > [!WARNING]
 > This project is in early alpha. The API is under active development and may undergo breaking changes without notice.
 
+## Prerequisites
+
+- Node.js 22, 24, or 26 (Node.js 26 recommended)
+- pnpm 12.21.0
+
 ## Quick Start
 
 ```bash

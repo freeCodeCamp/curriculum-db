@@ -22,7 +22,7 @@ jobs:
     runs-on: ubuntu-26.04
     strategy:
       matrix:
-        node-version: [22, 24]
+        node-version: [22, 24, 26]
       fail-fast: false
 
     steps:
@@ -50,7 +50,7 @@ jobs:
           cache: "pnpm"
 
       - name: Install dependencies
-        run: pnpm install
+        run: pnpm install --frozen-lockfile
 
       - name: Check formatting
         run: |
@@ -66,7 +66,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node-version: [22, 24]
+        node-version: [22, 24, 26]
 
     steps:
       - name: Checkout
@@ -86,7 +86,7 @@ jobs:
 
       - name: Install Dependencies
         run: |
-          pnpm install
+          pnpm install --frozen-lockfile
           pnpm fetch-data
 
       - name: Run Tests
@@ -98,7 +98,7 @@ jobs:
     runs-on: ubuntu-26.04
     strategy:
       matrix:
-        node-version: [22, 24]
+        node-version: [22, 24, 26]
 
     steps:
       - name: Checkout
@@ -118,7 +118,7 @@ jobs:
 
       - name: Install and Build
         run: |
-          pnpm install
+          pnpm install --frozen-lockfile
           pnpm fetch-data
           pnpm build
 
@@ -128,7 +128,7 @@ jobs:
     runs-on: ubuntu-26.04
     strategy:
       matrix:
-        node-version: [22, 24]
+        node-version: [22, 24, 26]
 
     steps:
       - name: Checkout
@@ -148,7 +148,7 @@ jobs:
 
       - name: Install Dependencies
         run: |
-          pnpm install
+          pnpm install --frozen-lockfile
           pnpm fetch-data
 
       - name: Run tests with coverage
