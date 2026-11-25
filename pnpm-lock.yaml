@@ -232,7 +232,7 @@ importers:
         version: 5.1.8(graphql@16.15.0)
       '@graphql-tools/executor-http':
         specifier: ^3.0.4
-        version: 3.6.1(@types/node@24.19.2)(graphql@16.15.0)
+        version: 3.6.2(@types/node@24.19.2)(graphql@16.15.0)
 
 packages:
 
@@ -640,8 +640,8 @@ packages:
     peerDependencies:
       graphql: ^14.0.0 || ^15.0.0 || ^16.0.0 || ^17.0.0
 
-  '@graphql-tools/executor-http@3.6.1':
-    resolution: {integrity: sha512-cIPvKTRG2vhSwIulMoZtwLvxjA4Ptr4qozdGDAbTNgiMMmm1nT6G3ZoJL/KFytuyTNMV7Ga61g0NNZv7501n9Q==}
+  '@graphql-tools/executor-http@3.6.2':
+    resolution: {integrity: sha512-F3OuO/FEf7o6Jj8INxWfm1A8rW2NIjINn6ovHs57kTtfy+FNB/P8YI3mqme1Qsg2OB2BxQTEmYcYJiv4lR/o2A==}
     engines: {node: '>=20.0.0'}
     peerDependencies:
       graphql: ^14.0.0 || ^15.0.0 || ^16.0.0 || ^17.0.0
@@ -2889,7 +2889,7 @@ snapshots:
       - crossws
       - utf-8-validate
 
-  '@graphql-tools/executor-http@3.6.1(@types/node@24.19.2)(graphql@16.15.0)':
+  '@graphql-tools/executor-http@3.6.2(@types/node@24.19.2)(graphql@16.15.0)':
     dependencies:
       '@graphql-hive/signal': 2.1.0
       '@graphql-tools/executor-common': 1.1.1(graphql@16.15.0)
@@ -2940,7 +2940,7 @@ snapshots:
 
   '@graphql-tools/github-loader@9.1.13(@types/node@24.19.2)(graphql@16.15.0)(supports-color@7.2.0)':
     dependencies:
-      '@graphql-tools/executor-http': 3.6.1(@types/node@24.19.2)(graphql@16.15.0)
+      '@graphql-tools/executor-http': 3.6.2(@types/node@24.19.2)(graphql@16.15.0)
       '@graphql-tools/graphql-tag-pluck': 8.3.41(graphql@16.15.0)(supports-color@7.2.0)
       '@graphql-tools/utils': 12.1.0(graphql@16.15.0)
       '@whatwg-node/fetch': 0.12.1
@@ -3024,7 +3024,7 @@ snapshots:
   '@graphql-tools/url-loader@9.1.14(@types/node@24.19.2)(graphql@16.15.0)':
     dependencies:
       '@graphql-tools/executor-graphql-ws': 3.2.0(graphql@16.15.0)
-      '@graphql-tools/executor-http': 3.6.1(@types/node@24.19.2)(graphql@16.15.0)
+      '@graphql-tools/executor-http': 3.6.2(@types/node@24.19.2)(graphql@16.15.0)
       '@graphql-tools/executor-legacy-ws': 1.1.39(graphql@16.15.0)
       '@graphql-tools/utils': 12.1.0(graphql@16.15.0)
       '@graphql-tools/wrap': 11.2.4(graphql@16.15.0)
